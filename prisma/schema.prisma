@@ -1,0 +1,413 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ShopStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  DISABLED
+}
+
+enum FreeResetType {
+  DAILY
+  ROLLING_24_HOURS
+}
+
+enum IntegrationStatus {
+  UNTESTED
+  CONNECTED
+  FAILED
+}
+
+enum DailyFreeAllowanceStatus {
+  CLAIMED
+  AUTHORIZED
+  FAILED
+  EXPIRED
+}
+
+enum PortalSessionStatus {
+  OPEN
+  AUTHORIZED
+  PAYWALL
+  ERROR
+  EXPIRED
+}
+
+enum AccessGrantType {
+  FREE_AUTO_WORKER
+  FREE_PORTAL_FAST_PATH
+  PAID
+  VOUCHER
+  CHECKOUT_GRACE
+  STAFF_COMP
+}
+
+enum AccessGrantStatus {
+  PENDING
+  AUTHORIZED
+  FAILED
+  EXPIRED
+  REVOKED
+}
+
+enum OrderStatus {
+  CREATED
+  CHECKOUT_STARTED
+  PAID
+  AUTHORIZED
+  FAILED
+  REFUNDED
+  CANCELED
+}
+
+enum VoucherStatus {
+  ACTIVE
+  PAUSED
+  EXPIRED
+  DEPLETED
+}
+
+enum NetworkProviderType {
+  UNIFI
+  MOCK
+}
+
+enum NetworkActionStatus {
+  SUCCESS
+  FAILED
+}
+
+enum ShopRole {
+  SHOP_OWNER
+  STAFF
+}
+
+enum PlatformRole {
+  PLATFORM_ADMIN
+}
+
+enum AuditLogStatus {
+  SUCCESS
+  FAILED
+}
+
+model Shop {
+  id                       String        @id @default(cuid())
+  name                     String
+  slug                     String        @unique
+  timezone                 String        @default("America/Los_Angeles")
+  status                   ShopStatus    @default(DRAFT)
+  freeMinutesPerDay        Int           @default(60)
+  freeResetType            FreeResetType @default(DAILY)
+  freeResetHour            Int           @default(0)
+  checkoutGraceMinutes     Int           @default(5)
+  maxCheckoutGracePerDay   Int           @default(2)
+  platformFeeBps           Int           @default(5000)
+  stripeConnectedAccountId String?
+  stripeChargesEnabled     Boolean       @default(false)
+  stripePayoutsEnabled     Boolean       @default(false)
+  brandLogoUrl             String?
+  brandPrimaryColor        String?
+  supportEmail             String?
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
+
+  unifiIntegration UniFiIntegration?
+  devices          Device[]
+  portalSessions   PortalSession[]
+  accessGrants     AccessGrant[]
+  pricePlans       PricePlan[]
+  orders           Order[]
+  vouchers         Voucher[]
+  members          ShopMember[]
+  networkLogs      NetworkActionLog[]
+  auditLogs        AuditLog[]
+}
+
+model UniFiIntegration {
+  id               String            @id @default(cuid())
+  shopId           String            @unique
+  apiBaseUrl       String
+  apiKeyEncrypted  String
+  siteId           String
+  siteName         String
+  allowedSsids     String[]          @default([])
+  connectionStatus IntegrationStatus @default(UNTESTED)
+  lastTestAt       DateTime?
+  lastError        String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+}
+
+model Device {
+  id                 String   @id @default(cuid())
+  shopId             String
+  clientMacHash      String
+  clientMacEncrypted String
+  firstSeenAt        DateTime @default(now())
+  lastSeenAt         DateTime @default(now())
+  lastSsid           String?
+  lastApMacHash      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  shop              Shop                 @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  portalSessions    PortalSession[]
+  accessGrants      AccessGrant[]
+  orders            Order[]
+  allowances        DailyFreeAllowance[]
+  voucherRedemptions VoucherRedemption[]
+  networkLogs       NetworkActionLog[]
+
+  @@unique([shopId, clientMacHash])
+  @@index([shopId, lastSeenAt])
+}
+
+model DailyFreeAllowance {
+  id        String                   @id @default(cuid())
+  shopId    String
+  deviceId  String
+  localDate String
+  timezone  String
+  status    DailyFreeAllowanceStatus @default(CLAIMED)
+  grantId   String?
+  claimedAt DateTime                 @default(now())
+  expiresAt DateTime?
+  createdAt DateTime                 @default(now())
+  updatedAt DateTime                 @updatedAt
+
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, deviceId, localDate])
+  @@index([shopId, localDate])
+}
+
+model PortalSession {
+  id            String              @id @default(cuid())
+  shopId        String
+  deviceId      String?
+  rawQueryJson  Json
+  ssid          String?
+  apMacHash     String?
+  originalUrl   String?
+  ipHash        String?
+  userAgentHash String?
+  status        PortalSessionStatus @default(OPEN)
+  createdAt     DateTime            @default(now())
+  expiresAt     DateTime
+
+  shop   Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  device Device? @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+}
+
+model AccessGrant {
+  id                   String            @id @default(cuid())
+  shopId               String
+  deviceId             String
+  type                 AccessGrantType
+  status               AccessGrantStatus @default(PENDING)
+  requestedMinutes     Int
+  authorizedAt         DateTime?
+  expiresAt            DateTime?
+  unifiClientId        String?
+  unifiActionStatus    String?
+  unifiResponseJson    Json?
+  orderId              String?
+  voucherRedemptionId  String?
+  dailyFreeAllowanceId String?
+  failureReason        String?
+  retryCount           Int               @default(0)
+  source               String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  shop         Shop               @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  device       Device             @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  order        Order?             @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  networkLogs  NetworkActionLog[]
+
+  @@index([shopId, deviceId, status, expiresAt])
+  @@index([orderId])
+}
+
+model PricePlan {
+  id              String   @id @default(cuid())
+  shopId          String
+  label           String
+  durationMinutes Int
+  amountCents     Int
+  currency        String   @default("usd")
+  active          Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  shop   Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([shopId, active, sortOrder])
+}
+
+model Order {
+  id                       String      @id @default(cuid())
+  shopId                   String
+  deviceId                 String
+  pricePlanId              String
+  status                   OrderStatus @default(CREATED)
+  amountCents              Int
+  currency                 String      @default("usd")
+  platformFeeCents         Int
+  stripeConnectedAccountId String?
+  stripeCheckoutSessionId  String?
+  stripePaymentIntentId    String?
+  stripeChargeId           String?
+  paidAt                   DateTime?
+  refundedAt               DateTime?
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
+
+  shop       Shop          @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  device     Device        @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  pricePlan  PricePlan     @relation(fields: [pricePlanId], references: [id], onDelete: Restrict)
+  grants     AccessGrant[]
+
+  @@index([shopId, status, createdAt])
+  @@index([stripeCheckoutSessionId])
+  @@index([stripePaymentIntentId])
+}
+
+model Voucher {
+  id              String        @id @default(cuid())
+  shopId          String
+  label           String
+  codeHash        String
+  durationMinutes Int
+  maxRedemptions  Int
+  redeemedCount   Int           @default(0)
+  startsAt        DateTime?
+  expiresAt       DateTime?
+  status          VoucherStatus @default(ACTIVE)
+  createdByUserId String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  shop        Shop                @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  redemptions VoucherRedemption[]
+
+  @@unique([shopId, codeHash])
+  @@index([shopId, status])
+}
+
+model VoucherRedemption {
+  id         String   @id @default(cuid())
+  voucherId String
+  shopId    String
+  deviceId  String
+  grantId   String?
+  redeemedAt DateTime @default(now())
+
+  voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  device  Device  @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([shopId, redeemedAt])
+  @@index([deviceId])
+}
+
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  provider    String
+  eventId     String
+  eventType   String
+  accountId   String?
+  livemode    Boolean  @default(false)
+  processedAt DateTime?
+  payloadJson Json
+  error       String?
+  createdAt   DateTime @default(now())
+
+  @@unique([provider, eventId])
+  @@index([provider, eventType, createdAt])
+}
+
+model NetworkActionLog {
+  id           String              @id @default(cuid())
+  shopId       String
+  deviceId     String?
+  grantId      String?
+  provider     NetworkProviderType
+  action       String
+  requestJson  Json?
+  responseJson Json?
+  status       NetworkActionStatus
+  error        String?
+  createdAt    DateTime            @default(now())
+
+  shop   Shop         @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  device Device?      @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  grant  AccessGrant? @relation(fields: [grantId], references: [id], onDelete: SetNull)
+
+  @@index([shopId, createdAt])
+  @@index([status, createdAt])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  shopMemberships ShopMember[]
+  platformRoles   PlatformUser[]
+}
+
+model ShopMember {
+  id        String   @id @default(cuid())
+  shopId    String
+  userId    String
+  role      ShopRole
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, userId])
+}
+
+model PlatformUser {
+  id        String       @id @default(cuid())
+  userId    String
+  role      PlatformRole
+  createdAt DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+}
+
+model AuditLog {
+  id          String         @id @default(cuid())
+  shopId      String?
+  actorUserId String?
+  action      String
+  entityType  String?
+  entityId    String?
+  status      AuditLogStatus @default(SUCCESS)
+  metadataJson Json?
+  createdAt   DateTime       @default(now())
+
+  shop Shop? @relation(fields: [shopId], references: [id], onDelete: SetNull)
+
+  @@index([shopId, createdAt])
+  @@index([action, createdAt])
+}
