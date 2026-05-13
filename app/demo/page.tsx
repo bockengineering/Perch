@@ -147,6 +147,12 @@ npm run demo:dev`}
             {data?.shopId ? (
               <>
                 <Link
+                  href={`/cafe/shops/${data.shopId}`}
+                  className="rounded-md border border-[var(--border)] px-4 py-2 text-sm font-semibold"
+                >
+                  Cafe back office
+                </Link>
+                <Link
                   href={`/admin/shops/${data.shopId}`}
                   className="rounded-md border border-[var(--border)] px-4 py-2 text-sm font-semibold"
                 >

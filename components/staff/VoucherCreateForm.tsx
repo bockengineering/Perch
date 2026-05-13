@@ -3,7 +3,7 @@
 import { Ticket } from "lucide-react";
 import { useState } from "react";
 
-export function VoucherCreateForm({ shopId }: { shopId: string }) {
+export function VoucherCreateForm({ shopId, framed = true }: { shopId: string; framed?: boolean }) {
   const [code, setCode] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -28,8 +28,10 @@ export function VoucherCreateForm({ shopId }: { shopId: string }) {
     setCode(payload.plaintextCode);
   }
 
+  const className = framed ? "surface grid gap-3 p-4" : "grid gap-3";
+
   return (
-    <form action={submit} className="surface grid gap-3 p-4">
+    <form action={submit} className={className}>
       <div className="grid gap-1">
         <label className="text-sm font-medium" htmlFor="label">
           Label

@@ -104,15 +104,24 @@ The demo console includes:
 - Reset demo data.
 - Primary device captive portal link.
 - Fresh device captive portal link.
+- Cafe back office link.
 - Admin dashboard links.
 - Staff voucher screen link.
 - Recent mock order status.
+
+Cafe back office:
+
+```text
+http://localhost:3000/cafe
+```
+
+The cafe panel is protected by the same demo credentials and includes cafe settings, paid-pass transactions, paid plan setup, and staff code creation.
 
 Paid-pass testing in demo mode:
 
 1. Reset demo data.
 2. Open the primary device once for free access.
-3. Open the same primary device again to see the paywall.
+3. Return to the demo console and click `Simulate free hour ended`.
 4. Click a paid plan.
 5. On the return page, click `Complete mock Stripe payment`.
 6. The demo route simulates `checkout.session.completed`, stores the webhook event idempotently, and creates a `PAID` grant through the mock network provider.

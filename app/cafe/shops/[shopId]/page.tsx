@@ -1,0 +1,218 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { CreditCard, ReceiptText, Settings, Ticket, Wifi } from "lucide-react";
+import { CafeSettingsForm } from "@/components/cafe/CafeSettingsForm";
+import { PricePlanForm } from "@/components/admin/PricePlanForm";
+import { VoucherCreateForm } from "@/components/staff/VoucherCreateForm";
+import { getPrisma } from "@/lib/db";
+import { startOfTodayUtc } from "@/lib/utils/time";
+
+export const dynamic = "force-dynamic";
+
+type PageProps = {
+  params: Promise<{ shopId: string }>;
+};
+
+function MetricCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="surface p-4">
+      <p className="text-sm text-[var(--muted)]">{label}</p>
+      <p className="metric mt-2 text-3xl font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function money(cents: number) {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+
+export default async function CafeShopPage({ params }: PageProps) {
+  const { shopId } = await params;
+  const prisma = getPrisma();
+  const shop = await prisma.shop.findUnique({
+    where: { id: shopId },
+    include: {
+      unifiIntegration: true,
+      pricePlans: { orderBy: { sortOrder: "asc" } },
+    },
+  });
+
+  if (!shop) {
+    notFound();
+  }
+
+  const today = startOfTodayUtc();
+  const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const [paidToday, revenueToday, voucherRedemptions, failedAuths, thirtyDayRevenue, transactions] =
+    await Promise.all([
+      prisma.order.count({ where: { shopId: shop.id, paidAt: { gte: today } } }),
+      prisma.order.aggregate({
+        where: { shopId: shop.id, paidAt: { gte: today }, status: { in: ["PAID", "AUTHORIZED"] } },
+        _sum: { amountCents: true, platformFeeCents: true },
+      }),
+      prisma.voucherRedemption.count({ where: { shopId: shop.id, redeemedAt: { gte: today } } }),
+      prisma.accessGrant.count({ where: { shopId: shop.id, status: "FAILED", createdAt: { gte: today } } }),
+      prisma.order.aggregate({
+        where: {
+          shopId: shop.id,
+          paidAt: { gte: thirtyDaysAgo },
+          status: { in: ["PAID", "AUTHORIZED"] },
+        },
+        _sum: { amountCents: true, platformFeeCents: true },
+      }),
+      prisma.order.findMany({
+        where: { shopId: shop.id },
+        include: { pricePlan: true },
+        orderBy: { createdAt: "desc" },
+        take: 12,
+      }),
+    ]);
+
+  const grossToday = revenueToday._sum.amountCents ?? 0;
+  const platformFeeToday = revenueToday._sum.platformFeeCents ?? 0;
+  const cafeShareToday = grossToday - platformFeeToday;
+  const thirtyDayGross = thirtyDayRevenue._sum.amountCents ?? 0;
+  const thirtyDayShare = thirtyDayGross - (thirtyDayRevenue._sum.platformFeeCents ?? 0);
+
+  return (
+    <main className="mx-auto grid max-w-6xl gap-6 px-6 py-8">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-5">
+        <div>
+          <p className="text-sm font-semibold text-[var(--accent)]">Cafe back office</p>
+          <h1 className="text-3xl font-semibold">{shop.name}</h1>
+          <p className="mt-1 text-sm text-[var(--muted)]">Settings, payments, and staff access codes.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href={`/staff/shops/${shop.id}/vouchers`} className="rounded-md border border-[var(--border)] px-4 py-2 text-sm font-semibold">
+            Staff codes
+          </Link>
+          <Link href={`/admin/shops/${shop.id}`} className="rounded-md border border-[var(--border)] px-4 py-2 text-sm font-semibold">
+            Advanced
+          </Link>
+          <Link href={`/p/${shop.slug}`} className="rounded-md bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-white">
+            Portal
+          </Link>
+        </div>
+      </header>
+
+      <section className="grid gap-4 md:grid-cols-4">
+        <MetricCard label="Paid passes today" value={paidToday} />
+        <MetricCard label="Gross today" value={money(grossToday)} />
+        <MetricCard label="Cafe share today" value={money(cafeShareToday)} />
+        <MetricCard label="Voucher uses today" value={voucherRedemptions} />
+        <MetricCard label="30-day gross" value={money(thirtyDayGross)} />
+        <MetricCard label="30-day cafe share" value={money(thirtyDayShare)} />
+        <MetricCard label="UniFi status" value={shop.unifiIntegration?.connectionStatus ?? "UNTESTED"} />
+        <MetricCard label="Failed auths today" value={failedAuths} />
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-[1fr_380px]">
+        <div className="surface grid gap-4 p-4">
+          <div className="flex items-center gap-2">
+            <ReceiptText size={18} />
+            <h2 className="text-xl font-semibold">Transactions</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left text-sm">
+              <thead className="bg-[var(--panel-strong)]">
+                <tr>
+                  <th className="p-3 font-semibold">Created</th>
+                  <th className="p-3 font-semibold">Plan</th>
+                  <th className="p-3 font-semibold">Status</th>
+                  <th className="p-3 font-semibold">Gross</th>
+                  <th className="p-3 font-semibold">Cafe share</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((order) => (
+                  <tr key={order.id} className="border-t border-[var(--border)]">
+                    <td className="p-3 text-[var(--muted)]">{order.createdAt.toLocaleString()}</td>
+                    <td className="p-3 font-semibold">{order.pricePlan.label}</td>
+                    <td className="p-3">{order.status}</td>
+                    <td className="p-3">{money(order.amountCents)}</td>
+                    <td className="p-3">{money(order.amountCents - order.platformFeeCents)}</td>
+                  </tr>
+                ))}
+                {transactions.length === 0 ? (
+                  <tr>
+                    <td className="p-3 text-[var(--muted)]" colSpan={5}>
+                      No transactions yet.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="surface grid gap-4 p-4">
+          <div className="flex items-center gap-2">
+            <Ticket size={18} />
+            <h2 className="text-xl font-semibold">Staff codes</h2>
+          </div>
+          <VoucherCreateForm shopId={shop.id} framed={false} />
+        </div>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <div className="surface grid gap-4 p-4">
+          <div className="flex items-center gap-2">
+            <Settings size={18} />
+            <h2 className="text-xl font-semibold">Cafe settings</h2>
+          </div>
+          <CafeSettingsForm
+            shop={{
+              id: shop.id,
+              name: shop.name,
+              timezone: shop.timezone,
+              status: shop.status,
+              freeMinutesPerDay: shop.freeMinutesPerDay,
+              checkoutGraceMinutes: shop.checkoutGraceMinutes,
+              maxCheckoutGracePerDay: shop.maxCheckoutGracePerDay,
+              supportEmail: shop.supportEmail,
+            }}
+          />
+        </div>
+
+        <div className="surface grid gap-4 p-4">
+          <div className="flex items-center gap-2">
+            <CreditCard size={18} />
+            <h2 className="text-xl font-semibold">Paid plans</h2>
+          </div>
+          <div className="grid gap-2">
+            {shop.pricePlans.map((plan) => (
+              <div key={plan.id} className="flex items-center justify-between border-b border-[var(--border)] py-2 text-sm last:border-0">
+                <span className="font-semibold">{plan.label}</span>
+                <span>
+                  {money(plan.amountCents)} / {plan.durationMinutes} min
+                </span>
+              </div>
+            ))}
+          </div>
+          <PricePlanForm shopId={shop.id} />
+        </div>
+      </section>
+
+      <section className="surface grid gap-3 p-4">
+        <div className="flex items-center gap-2">
+          <Wifi size={18} />
+          <h2 className="text-xl font-semibold">Network status</h2>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          <div>
+            <p className="text-sm text-[var(--muted)]">Allowed SSIDs</p>
+            <p className="mt-2 font-semibold">{shop.unifiIntegration?.allowedSsids.join(", ") || "All"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-[var(--muted)]">Stripe</p>
+            <p className="mt-2 font-semibold">{shop.stripeChargesEnabled ? "CONNECTED" : "INCOMPLETE"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-[var(--muted)]">Free reset</p>
+            <p className="mt-2 font-semibold">{shop.freeMinutesPerDay} min daily</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
