@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { hashMac, normalizeMac } from "@/lib/crypto/mac";
 import { demoToolsEnabled } from "@/lib/env";
 import { getPrisma } from "@/lib/db";
 import { processStripeConnectEvent } from "@/lib/services/webhooks";
@@ -67,6 +68,48 @@ export async function resetDemoData() {
   }
 
   return seedDemoData(prisma);
+}
+
+export async function expireDemoDeviceAccess(mac = demoPrimaryMac) {
+  assertDemoToolsEnabled();
+  const prisma = getPrisma();
+  const shop = await prisma.shop.findUnique({ where: { slug: demoShopSlug } });
+
+  if (!shop) {
+    throw new Error("Demo Cafe has not been seeded yet.");
+  }
+
+  const normalizedMac = normalizeMac(mac);
+  const device = await prisma.device.findUnique({
+    where: {
+      shopId_clientMacHash: {
+        shopId: shop.id,
+        clientMacHash: hashMac(shop.id, normalizedMac),
+      },
+    },
+  });
+
+  if (!device) {
+    return { expiredGrants: 0, deviceId: null };
+  }
+
+  const now = new Date();
+  const expiredAt = new Date(now.getTime() - 60_000);
+  const result = await prisma.accessGrant.updateMany({
+    where: {
+      shopId: shop.id,
+      deviceId: device.id,
+      status: "AUTHORIZED",
+      OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+    },
+    data: {
+      status: "EXPIRED",
+      expiresAt: expiredAt,
+      source: "DEMO_EXPIRE_ACCESS",
+    },
+  });
+
+  return { expiredGrants: result.count, deviceId: device.id };
 }
 
 export async function completeDemoCheckout(orderId: string) {

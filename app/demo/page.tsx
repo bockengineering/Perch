@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DemoExpireAccessButton } from "@/components/demo/DemoExpireAccessButton";
 import { DemoResetButton } from "@/components/demo/DemoResetButton";
 import { appUrl, demoToolsEnabled } from "@/lib/env";
 import { getPrisma } from "@/lib/db";
@@ -117,8 +118,8 @@ npm run demo:dev`}
         <div className="surface grid gap-4 p-4">
           <h2 className="text-xl font-semibold">Portal flow</h2>
           <p className="text-sm text-[var(--muted)]">
-            Open the primary device once for silent free access. Open it again on the same local day for the
-            paywall.
+            Open the primary device once for silent free access. Repeat visits stay connected while the mock
+            grant is active; use the simulator to jump to the paywall.
           </p>
           <div className="grid gap-2">
             {demoDevices().map((device) => (
@@ -131,6 +132,7 @@ npm run demo:dev`}
               </Link>
             ))}
           </div>
+          <DemoExpireAccessButton portalUrl={primaryPortalUrl} />
         </div>
 
         <div className="surface grid gap-4 p-4">
