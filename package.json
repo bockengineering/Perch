@@ -19,7 +19,11 @@
     "demo:db:up": "docker compose -f docker-compose.demo.yml up -d",
     "demo:db:wait": "tsx scripts/wait-for-demo-db.ts",
     "demo:db:down": "docker compose -f docker-compose.demo.yml down",
+    "demo:pg:start": "tsx scripts/demo-postgres.ts start",
+    "demo:pg:stop": "tsx scripts/demo-postgres.ts stop",
+    "demo:pg:status": "tsx scripts/demo-postgres.ts status",
     "demo:setup": "npm run demo:env && npm run demo:db:up && npm run demo:db:wait && npm run demo:reset",
+    "demo:setup:local-pg": "npm run demo:env && npm run demo:pg:start && npm run demo:reset",
     "demo:reset": "npm run demo:env && sh -c 'set -a; . ./.env.demo.local; set +a; prisma db push --force-reset --accept-data-loss && prisma db seed'",
     "demo:dev": "npm run demo:env && sh -c 'set -a; . ./.env.demo.local; set +a; next dev --webpack'",
     "demo:worker": "npm run demo:env && sh -c 'set -a; . ./.env.demo.local; set +a; tsx scripts/silent-free-worker.ts'"

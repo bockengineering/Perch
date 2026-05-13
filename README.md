@@ -65,13 +65,21 @@ Mock mode returns a deterministic UniFi client, authorizes grants successfully, 
 
 Use the demo environment before pointing Perch at real cafe hardware. It runs with mock UniFi, mock Stripe Checkout, demo-only reset controls, and a local Postgres database.
 
-One-time setup:
+One-time setup with Docker:
 
 ```bash
 npm run demo:setup
 ```
 
-This creates an ignored `.env.demo.local`, starts Postgres through `docker-compose.demo.yml`, resets the demo database, and seeds Demo Cafe. If Docker is not installed, create any Postgres database yourself, run `npm run demo:env`, edit `.env.demo.local` with that `DATABASE_URL`, then run `npm run demo:reset`.
+This creates an ignored `.env.demo.local`, starts Postgres through `docker-compose.demo.yml`, resets the demo database, and seeds Demo Cafe.
+
+One-time setup with local Postgres, useful when Docker is not installed:
+
+```bash
+npm run demo:setup:local-pg
+```
+
+The local Postgres helper looks for PostgreSQL CLI tools in `POSTGRES_BIN`, Postgres.app, Homebrew, and standard system paths. It creates data under `~/.perch-demo/postgres-data`, listens on port `54329`, and can be stopped with `npm run demo:pg:stop`. If you already have another Postgres database, run `npm run demo:env`, edit `.env.demo.local` with that `DATABASE_URL`, then run `npm run demo:reset`.
 
 Start the demo app:
 
