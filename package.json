@@ -14,7 +14,15 @@
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
     "seed": "prisma db seed",
-    "worker": "tsx scripts/silent-free-worker.ts"
+    "worker": "tsx scripts/silent-free-worker.ts",
+    "demo:env": "tsx scripts/create-demo-env.ts",
+    "demo:db:up": "docker compose -f docker-compose.demo.yml up -d",
+    "demo:db:wait": "tsx scripts/wait-for-demo-db.ts",
+    "demo:db:down": "docker compose -f docker-compose.demo.yml down",
+    "demo:setup": "npm run demo:env && npm run demo:db:up && npm run demo:db:wait && npm run demo:reset",
+    "demo:reset": "npm run demo:env && sh -c 'set -a; . ./.env.demo.local; set +a; prisma db push --force-reset --accept-data-loss && prisma db seed'",
+    "demo:dev": "npm run demo:env && sh -c 'set -a; . ./.env.demo.local; set +a; next dev --webpack'",
+    "demo:worker": "npm run demo:env && sh -c 'set -a; . ./.env.demo.local; set +a; tsx scripts/silent-free-worker.ts'"
   },
   "dependencies": {
     "@prisma/client": "6.19.3",

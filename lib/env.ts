@@ -12,6 +12,10 @@ export function workerPollIntervalSeconds() {
   return Number.isFinite(value) && value > 0 ? value : 5;
 }
 
+export function demoToolsEnabled() {
+  return process.env.DEMO_TOOLS_ENABLED === "true";
+}
+
 export function requireServerEnv(name: string) {
   const value = process.env[name];
   if (!value || value.includes("placeholder") || value.includes("replace_with")) {

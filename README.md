@@ -27,6 +27,7 @@ Copy `.env.example` to `.env` and replace every placeholder:
 - `STRIPE_WEBHOOK_SECRET_CONNECT`: Stripe Connect webhook signing secret.
 - `STRIPE_CONNECT_CLIENT_ID`: Connect client ID if using OAuth-style flows.
 - `STRIPE_MOCK_CHECKOUT`: set `true` for local mock checkout URLs.
+- `DEMO_TOOLS_ENABLED`: enables local/staging-only demo reset and mock checkout completion routes.
 - `APP_MAC_PEPPER`: HMAC secret for per-shop MAC identity hashes.
 - `FIELD_ENCRYPTION_KEY`: 32-byte base64 or hex key for encrypted MACs and UniFi API keys.
 - `VOUCHER_CODE_SECRET`: HMAC secret for staff voucher codes.
@@ -59,6 +60,62 @@ STRIPE_MOCK_CHECKOUT="true"
 ```
 
 Mock mode returns a deterministic UniFi client, authorizes grants successfully, and uses a local checkout return URL instead of calling Stripe.
+
+## Demo Environment
+
+Use the demo environment before pointing Perch at real cafe hardware. It runs with mock UniFi, mock Stripe Checkout, demo-only reset controls, and a local Postgres database.
+
+One-time setup:
+
+```bash
+npm run demo:setup
+```
+
+This creates an ignored `.env.demo.local`, starts Postgres through `docker-compose.demo.yml`, resets the demo database, and seeds Demo Cafe. If Docker is not installed, create any Postgres database yourself, run `npm run demo:env`, edit `.env.demo.local` with that `DATABASE_URL`, then run `npm run demo:reset`.
+
+Start the demo app:
+
+```bash
+npm run demo:dev
+```
+
+Open:
+
+```text
+http://localhost:3000/demo
+```
+
+Demo admin credentials:
+
+```text
+demo@perch.local / perch-demo
+```
+
+The demo console includes:
+
+- Reset demo data.
+- Primary device captive portal link.
+- Fresh device captive portal link.
+- Admin dashboard links.
+- Staff voucher screen link.
+- Recent mock order status.
+
+Paid-pass testing in demo mode:
+
+1. Reset demo data.
+2. Open the primary device once for free access.
+3. Open the same primary device again to see the paywall.
+4. Click a paid plan.
+5. On the return page, click `Complete mock Stripe payment`.
+6. The demo route simulates `checkout.session.completed`, stores the webhook event idempotently, and creates a `PAID` grant through the mock network provider.
+
+Worker testing:
+
+```bash
+npm run demo:worker
+```
+
+The mock provider exposes an unauthorized `DemoGuest` client. The worker should grant free access once, then leave that device alone after the daily allowance exists.
 
 Demo captive portal URL:
 
@@ -143,7 +200,7 @@ Admin and staff routes are protected by HTTP Basic Auth through `proxy.ts`.
 - MVP is UniFi only.
 - No customer accounts, mobile app, POS integration, email marketing, DNS logging, browsing history collection, or packet inspection.
 - Device identity is MAC-based; private address rotation can create extra free grants.
-- Checkout mock mode does not mark orders paid without a webhook-like event.
+- Checkout mock mode requires the demo payment-completion button or a real webhook-like event to mark orders paid.
 - The worker uses simple polling and should later be optimized for business hours and larger deployments.
 - Prisma is pinned to v6 for stable schema support; Prisma v7 migration can be handled later.
 - Next build is configured with `next build --webpack` and separate `tsc --noEmit` because this macOS runtime cannot load signed native SWC/Turbopack bindings reliably.

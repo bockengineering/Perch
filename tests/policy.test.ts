@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { buildDemoPortalUrl } from "@/lib/services/demo-environment";
 import { canCreateCheckoutGrace, isDailyFreeEligible } from "@/lib/services/portal-policy";
 import { isDuplicateWebhook } from "@/lib/services/webhooks";
 
@@ -20,5 +21,19 @@ describe("portal policy", () => {
     const seen = new Set<string>();
     assert.equal(isDuplicateWebhook(seen, "evt_1"), false);
     assert.equal(isDuplicateWebhook(seen, "evt_1"), true);
+  });
+});
+
+describe("demo environment", () => {
+  it("builds a mock captive portal URL that returns to the demo console", () => {
+    const url = buildDemoPortalUrl({
+      appUrl: "http://localhost:3000",
+      successPath: "/demo/connected",
+      mac: "AA:BB:CC:DD:EE:FF",
+    });
+
+    assert.equal(url.startsWith("/p/demo-cafe?"), true);
+    assert.equal(url.includes("ssid=DemoGuest"), true);
+    assert.equal(url.includes("url=http%3A%2F%2Flocalhost%3A3000%2Fdemo%2Fconnected"), true);
   });
 });
