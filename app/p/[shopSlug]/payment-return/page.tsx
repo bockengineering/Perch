@@ -1,6 +1,9 @@
 import { DemoCompleteCheckoutButton } from "@/components/demo/DemoCompleteCheckoutButton";
+import { PaymentReturnWatcher } from "@/components/portal/PaymentReturnWatcher";
+import { redirect } from "next/navigation";
 import { getPrisma } from "@/lib/db";
 import { demoToolsEnabled } from "@/lib/env";
+import { paymentSuccessRedirectUrl } from "@/lib/utils/redirect";
 
 export const dynamic = "force-dynamic";
 
@@ -15,13 +18,14 @@ export default async function PaymentReturnPage({ searchParams }: PageProps) {
   const showDemoPaymentControl =
     demoToolsEnabled() && process.env.STRIPE_MOCK_CHECKOUT === "true" && order?.status === "CHECKOUT_STARTED";
 
+  if (order?.status === "AUTHORIZED") {
+    redirect(paymentSuccessRedirectUrl());
+  }
+
   let title = "Payment processing...";
   let body = "We are waiting for Stripe to confirm your pass.";
 
-  if (order?.status === "AUTHORIZED") {
-    title = "Connected";
-    body = "Your Wi-Fi pass is active.";
-  } else if (order?.status === "PAID") {
+  if (order?.status === "PAID") {
     title = "Connecting...";
     body = "Payment received. We are finishing your Wi-Fi connection.";
   } else if (order?.status === "FAILED") {
@@ -35,6 +39,7 @@ export default async function PaymentReturnPage({ searchParams }: PageProps) {
         <p className="text-sm font-semibold text-[var(--accent)]">Perch</p>
         <h1 className="mt-3 text-2xl font-semibold">{title}</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">{body}</p>
+        {order ? <PaymentReturnWatcher orderId={order.id} enabled={order.status !== "FAILED"} /> : null}
         {showDemoPaymentControl && order ? <DemoCompleteCheckoutButton orderId={order.id} /> : null}
         {order ? <p className="mt-5 text-xs text-[var(--muted)]">Order {order.id}</p> : null}
       </section>

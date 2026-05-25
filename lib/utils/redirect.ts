@@ -1,4 +1,8 @@
-const defaultSuccessUrl = "https://www.google.com";
+export const defaultSuccessUrl = "https://www.google.com";
+
+export function paymentSuccessRedirectUrl() {
+  return defaultSuccessUrl;
+}
 
 export function safeRedirectUrl(originalUrl?: string | null, fallback = defaultSuccessUrl) {
   if (!originalUrl) {
