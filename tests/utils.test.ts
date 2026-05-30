@@ -4,6 +4,12 @@ import { normalizeMac, hashMac } from "@/lib/crypto/mac";
 import { safeRedirectUrl } from "@/lib/utils/redirect";
 import { getShopLocalDate } from "@/lib/utils/time";
 import { hashVoucherCode, normalizeVoucherCode } from "@/lib/services/vouchers";
+import {
+  createCafeSessionCookie,
+  isCafeLoginValid,
+  safeCafeRedirectPath,
+  verifyCafeSessionCookie,
+} from "@/lib/auth/cafe-session";
 
 describe("MAC utilities", () => {
   it("normalizes common MAC address formats", () => {
@@ -54,5 +60,31 @@ describe("redirects and voucher hashing", () => {
     assert.equal(normalizeVoucherCode(" perch-1234 "), "PERCH1234");
     assert.equal(hashVoucherCode("perch-1234"), hashVoucherCode("PERCH1234"));
     assert.equal(hashVoucherCode("perch-1234").includes("PERCH1234"), false);
+  });
+});
+
+describe("cafe login session", () => {
+  it("validates configured cafe credentials", () => {
+    process.env.CAFE_LOGIN_EMAIL = "owner@demo.local";
+    process.env.CAFE_LOGIN_PASSWORD = "secret-pass";
+    assert.equal(isCafeLoginValid("OWNER@demo.local", "secret-pass"), true);
+    assert.equal(isCafeLoginValid("owner@demo.local", "wrong"), false);
+  });
+
+  it("creates and verifies a signed cafe session cookie", async () => {
+    process.env.CAFE_SESSION_SECRET = "test-cafe-session-secret";
+    const now = new Date("2026-05-30T12:00:00.000Z");
+    const cookie = await createCafeSessionCookie("owner@demo.local", now);
+    const session = await verifyCafeSessionCookie(cookie, now);
+    assert.equal(session?.email, "owner@demo.local");
+    assert.equal(session?.role, "SHOP_OWNER");
+    assert.equal(await verifyCafeSessionCookie(`${cookie}tampered`, now), null);
+  });
+
+  it("only allows internal cafe redirect destinations", () => {
+    assert.equal(safeCafeRedirectPath("/cafe/shops/shop_123"), "/cafe/shops/shop_123");
+    assert.equal(safeCafeRedirectPath("https://example.com"), "/cafe");
+    assert.equal(safeCafeRedirectPath("//example.com"), "/cafe");
+    assert.equal(safeCafeRedirectPath("/\\example.com"), "/cafe");
   });
 });

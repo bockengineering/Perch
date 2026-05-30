@@ -92,6 +92,11 @@ export default async function CafeShopPage({ params }: PageProps) {
           <Link href={`/p/${shop.slug}`} className="rounded-md bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-white">
             Portal
           </Link>
+          <form action="/api/cafe/logout" method="post">
+            <button className="rounded-md border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold" type="submit">
+              Sign out
+            </button>
+          </form>
         </div>
       </header>
 

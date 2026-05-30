@@ -23,6 +23,8 @@ Copy `.env.example` to `.env` and replace every placeholder:
 - `APP_URL`: public app URL, for example `http://localhost:3000`.
 - `NEXTAUTH_SECRET`: auth/session secret placeholder for future auth expansion.
 - `ADMIN_BASIC_USERNAME` / `ADMIN_BASIC_PASSWORD`: basic admin/staff gate.
+- `CAFE_LOGIN_EMAIL` / `CAFE_LOGIN_PASSWORD`: cafe owner login for the cafe console.
+- `CAFE_SESSION_SECRET`: secret used to sign cafe console session cookies.
 - `STRIPE_SECRET_KEY`: Stripe platform secret key.
 - `STRIPE_WEBHOOK_SECRET_CONNECT`: Stripe Connect webhook signing secret.
 - `STRIPE_CONNECT_CLIENT_ID`: Connect client ID if using OAuth-style flows.
@@ -115,7 +117,13 @@ Cafe back office:
 http://localhost:3000/cafe
 ```
 
-The cafe panel is protected by the same demo credentials and includes cafe settings, paid-pass transactions, paid plan setup, and staff code creation.
+The cafe panel redirects to a Perch login screen instead of the browser-native Basic Auth prompt. In demo mode, sign in with:
+
+```text
+demo@perch.local / perch-demo
+```
+
+The cafe panel includes cafe settings, paid-pass transactions, paid plan setup, and staff code creation.
 
 Paid-pass testing in demo mode:
 
