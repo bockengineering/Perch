@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { actorFromRequest } from "@/lib/auth/basic";
+import {
+  cafeActorFromSession,
+  cafeSessionCanAccessShop,
+  getCafeSessionFromRequest,
+} from "@/lib/auth/cafe-authorization";
 import { createVoucher } from "@/lib/services/vouchers";
 import { logAudit } from "@/lib/services/audit";
 
@@ -18,8 +23,12 @@ type RouteContext = {
 };
 
 export async function POST(request: Request, context: RouteContext) {
-  const actor = actorFromRequest(request);
   const { shopId } = await context.params;
+  const cafeSession = await getCafeSessionFromRequest(request);
+  if (cafeSession && !cafeSessionCanAccessShop(cafeSession, shopId)) {
+    return NextResponse.json({ error: "Not authorized for this shop." }, { status: 403 });
+  }
+  const actor = cafeSession ? cafeActorFromSession(cafeSession) : actorFromRequest(request);
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid voucher payload." }, { status: 400 });

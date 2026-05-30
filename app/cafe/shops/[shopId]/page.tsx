@@ -1,9 +1,14 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { CreditCard, ReceiptText, Settings, Ticket, Wifi } from "lucide-react";
 import { CafeSettingsForm } from "@/components/cafe/CafeSettingsForm";
 import { PricePlanForm } from "@/components/admin/PricePlanForm";
 import { VoucherCreateForm } from "@/components/staff/VoucherCreateForm";
+import {
+  CAFE_SESSION_COOKIE_NAME,
+  verifyCafeSessionCookie,
+} from "@/lib/auth/cafe-session";
 import { getPrisma } from "@/lib/db";
 import { startOfTodayUtc } from "@/lib/utils/time";
 
@@ -28,6 +33,14 @@ function money(cents: number) {
 
 export default async function CafeShopPage({ params }: PageProps) {
   const { shopId } = await params;
+  const session = await verifyCafeSessionCookie((await cookies()).get(CAFE_SESSION_COOKIE_NAME)?.value);
+  if (!session) {
+    redirect(`/cafe/login?next=/cafe/shops/${shopId}`);
+  }
+  if (!session.shopIds?.includes(shopId)) {
+    notFound();
+  }
+
   const prisma = getPrisma();
   const shop = await prisma.shop.findUnique({
     where: { id: shopId },

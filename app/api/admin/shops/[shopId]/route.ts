@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { actorFromRequest } from "@/lib/auth/basic";
+import {
+  cafeActorFromSession,
+  cafeSessionCanAccessShop,
+  getCafeSessionFromRequest,
+} from "@/lib/auth/cafe-authorization";
 import { getPrisma } from "@/lib/db";
 import { logAudit } from "@/lib/services/audit";
 
@@ -35,8 +40,12 @@ export async function GET(_request: Request, context: RouteContext) {
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const actor = actorFromRequest(request);
   const { shopId } = await context.params;
+  const cafeSession = await getCafeSessionFromRequest(request);
+  if (cafeSession && !cafeSessionCanAccessShop(cafeSession, shopId, true)) {
+    return NextResponse.json({ error: "Not authorized for this shop." }, { status: 403 });
+  }
+  const actor = cafeSession ? cafeActorFromSession(cafeSession) : actorFromRequest(request);
   const parsed = updateShopSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid shop payload." }, { status: 400 });

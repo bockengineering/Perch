@@ -60,7 +60,7 @@ export default async function CafeLoginPage({ searchParams }: PageProps) {
 
           {params.error === "invalid" ? (
             <p className="login-error" role="alert">
-              The email or password was not recognized.
+              The email or password was not recognized, or this account is not assigned to a cafe.
             </p>
           ) : null}
 

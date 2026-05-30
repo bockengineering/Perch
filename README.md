@@ -25,6 +25,9 @@ Copy `.env.example` to `.env` and replace every placeholder:
 - `ADMIN_BASIC_USERNAME` / `ADMIN_BASIC_PASSWORD`: basic admin/staff gate.
 - `CAFE_LOGIN_EMAIL` / `CAFE_LOGIN_PASSWORD`: cafe owner login for the cafe console.
 - `CAFE_SESSION_SECRET`: secret used to sign cafe console session cookies.
+- `SUPABASE_URL`: Supabase project URL for cafe-owner Auth.
+- `SUPABASE_PUBLISHABLE_KEY`: Supabase publishable browser-safe key, used server-side by Perch for password sign-in.
+- `SUPABASE_SECRET_KEY`: Supabase secret key for server-side account creation. Never expose this to the browser.
 - `STRIPE_SECRET_KEY`: Stripe platform secret key.
 - `STRIPE_WEBHOOK_SECRET_CONNECT`: Stripe Connect webhook signing secret.
 - `STRIPE_CONNECT_CLIENT_ID`: Connect client ID if using OAuth-style flows.
@@ -124,6 +127,39 @@ demo@perch.local / perch-demo
 ```
 
 The cafe panel includes cafe settings, paid-pass transactions, paid plan setup, and staff code creation.
+
+## Supabase Cafe Accounts
+
+Perch can use Supabase Auth as the credential backend for cafe console accounts. Set:
+
+```bash
+SUPABASE_URL="https://your-project-ref.supabase.co"
+SUPABASE_PUBLISHABLE_KEY="sb_publishable_..."
+SUPABASE_SECRET_KEY="sb_secret_..."
+CAFE_SESSION_SECRET="replace_with_a_random_session_secret"
+```
+
+The login form posts to Perch, Perch validates the email/password with Supabase Auth, then Perch checks its local `User` and `ShopMember` tables to decide which cafe console the user can access. Authorization does not rely on user-editable Supabase metadata.
+
+Create or link a cafe member through:
+
+```text
+POST /api/admin/shops/{shopId}/members
+```
+
+Example body:
+
+```json
+{
+  "email": "owner@example.com",
+  "name": "Cafe Owner",
+  "role": "SHOP_OWNER",
+  "password": "temporary-password",
+  "createSupabaseUser": true
+}
+```
+
+If `SUPABASE_SECRET_KEY` is configured, this creates a Supabase Auth user and links the returned Supabase user ID to Perch. If the Supabase user already exists, create or invite them in Supabase, then create the local `User`/`ShopMember` entry with `createSupabaseUser: false`.
 
 Paid-pass testing in demo mode:
 

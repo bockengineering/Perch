@@ -8,12 +8,25 @@ export const demoApMac = "11:22:33:44:55:66";
 export const demoSsid = "DemoGuest";
 
 export async function seedDemoData(prisma: PrismaClient) {
+  const ownerEmail = (
+    process.env.CAFE_LOGIN_EMAIL ??
+    process.env.ADMIN_BASIC_USERNAME ??
+    "admin@perch.local"
+  ).toLowerCase();
   const admin = await prisma.user.upsert({
     where: { email: "admin@perch.local" },
     update: {},
     create: {
       email: "admin@perch.local",
       name: "Perch Admin",
+    },
+  });
+  const owner = await prisma.user.upsert({
+    where: { email: ownerEmail },
+    update: { name: "Demo Cafe Owner" },
+    create: {
+      email: ownerEmail,
+      name: "Demo Cafe Owner",
     },
   });
 
@@ -64,20 +77,22 @@ export async function seedDemoData(prisma: PrismaClient) {
     },
   });
 
-  await prisma.shopMember.upsert({
-    where: {
-      shopId_userId: {
-        shopId: shop.id,
-        userId: admin.id,
+  for (const user of [admin, owner]) {
+    await prisma.shopMember.upsert({
+      where: {
+        shopId_userId: {
+          shopId: shop.id,
+          userId: user.id,
+        },
       },
-    },
-    update: { role: ShopRole.SHOP_OWNER },
-    create: {
-      shopId: shop.id,
-      userId: admin.id,
-      role: ShopRole.SHOP_OWNER,
-    },
-  });
+      update: { role: ShopRole.SHOP_OWNER },
+      create: {
+        shopId: shop.id,
+        userId: user.id,
+        role: ShopRole.SHOP_OWNER,
+      },
+    });
+  }
 
   await prisma.uniFiIntegration.upsert({
     where: { shopId: shop.id },

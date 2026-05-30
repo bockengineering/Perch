@@ -361,11 +361,13 @@ model NetworkActionLog {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String?
+  supabaseUserId String?   @unique
+  lastLoginAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   shopMemberships ShopMember[]
   platformRoles   PlatformUser[]

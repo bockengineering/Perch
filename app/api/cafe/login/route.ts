@@ -6,6 +6,8 @@ import {
   isCafeLoginValid,
   safeCafeRedirectPath,
 } from "@/lib/auth/cafe-session";
+import { resolveCafeAccountForLocalDemo, resolveCafeAccountForSupabaseUser } from "@/lib/auth/cafe-account";
+import { isSupabaseAuthConfigured, signInWithSupabasePassword } from "@/lib/auth/supabase";
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
@@ -13,7 +15,23 @@ export async function POST(request: NextRequest) {
   const password = String(formData.get("password") ?? "");
   const nextPath = safeCafeRedirectPath(String(formData.get("next") ?? "/cafe"));
 
-  if (!isCafeLoginValid(email, password)) {
+  let account = null;
+
+  if (isSupabaseAuthConfigured()) {
+    const signIn = await signInWithSupabasePassword(email, password);
+    if (signIn.ok && signIn.user.email) {
+      const name = typeof signIn.user.user_metadata?.name === "string" ? signIn.user.user_metadata.name : null;
+      account = await resolveCafeAccountForSupabaseUser({
+        supabaseUserId: signIn.user.id,
+        email: signIn.user.email,
+        name,
+      });
+    }
+  } else if (isCafeLoginValid(email, password)) {
+    account = await resolveCafeAccountForLocalDemo(email);
+  }
+
+  if (!account) {
     const loginUrl = new URL("/cafe/login", request.url);
     loginUrl.searchParams.set("error", "invalid");
     loginUrl.searchParams.set("next", nextPath);
@@ -23,7 +41,7 @@ export async function POST(request: NextRequest) {
   const response = NextResponse.redirect(new URL(nextPath, request.url), 303);
   response.cookies.set({
     name: CAFE_SESSION_COOKIE_NAME,
-    value: await createCafeSessionCookie(email),
+    value: await createCafeSessionCookie(account),
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

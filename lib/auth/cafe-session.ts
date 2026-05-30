@@ -3,7 +3,9 @@ export const CAFE_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
 
 export type CafeSession = {
   email: string;
-  role: "SHOP_OWNER";
+  role: "SHOP_OWNER" | "STAFF";
+  userId?: string;
+  shopIds?: string[];
   exp: number;
 };
 
@@ -61,10 +63,22 @@ export function isCafeLoginValid(email: string, password: string) {
   return email.trim().toLowerCase() === credentials.email.toLowerCase() && password === credentials.password;
 }
 
-export async function createCafeSessionCookie(email: string, now = new Date()) {
+type CafeSessionInput =
+  | string
+  | {
+      email: string;
+      userId?: string;
+      role?: "SHOP_OWNER" | "STAFF";
+      shopIds?: string[];
+    };
+
+export async function createCafeSessionCookie(input: CafeSessionInput, now = new Date()) {
+  const email = typeof input === "string" ? input : input.email;
   const session: CafeSession = {
     email: email.trim().toLowerCase(),
-    role: "SHOP_OWNER",
+    role: typeof input === "string" ? "SHOP_OWNER" : (input.role ?? "SHOP_OWNER"),
+    userId: typeof input === "string" ? undefined : input.userId,
+    shopIds: typeof input === "string" ? undefined : input.shopIds,
     exp: Math.floor(now.getTime() / 1000) + CAFE_SESSION_MAX_AGE_SECONDS,
   };
   const payload = base64UrlEncode(JSON.stringify(session));
@@ -84,7 +98,7 @@ export async function verifyCafeSessionCookie(cookieValue: string | undefined, n
 
   try {
     const session = JSON.parse(base64UrlDecode(payload)) as Partial<CafeSession>;
-    if (session.role !== "SHOP_OWNER" || !session.email || !session.exp) {
+    if ((session.role !== "SHOP_OWNER" && session.role !== "STAFF") || !session.email || !session.exp) {
       return null;
     }
     if (session.exp <= Math.floor(now.getTime() / 1000)) {
@@ -101,4 +115,17 @@ export function safeCafeRedirectPath(value: string | null | undefined) {
     return "/cafe";
   }
   return value;
+}
+
+export function parseCookieHeader(header: string | null, name: string) {
+  if (!header) {
+    return undefined;
+  }
+  for (const part of header.split(";")) {
+    const [cookieName, ...valueParts] = part.trim().split("=");
+    if (cookieName === name) {
+      return valueParts.join("=");
+    }
+  }
+  return undefined;
 }
