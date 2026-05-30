@@ -462,6 +462,11 @@ textarea::placeholder {
   color: #77776f;
 }
 
+.account-checkbox {
+  width: 1rem;
+  min-height: 1rem;
+}
+
 table {
   width: 100%;
 }

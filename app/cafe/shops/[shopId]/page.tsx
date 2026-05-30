@@ -3,12 +3,14 @@ import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { CreditCard, ReceiptText, Settings, Ticket, Wifi } from "lucide-react";
 import { CafeSettingsForm } from "@/components/cafe/CafeSettingsForm";
+import { CafeMembersPanel } from "@/components/cafe/CafeMembersPanel";
 import { PricePlanForm } from "@/components/admin/PricePlanForm";
 import { VoucherCreateForm } from "@/components/staff/VoucherCreateForm";
 import {
   CAFE_SESSION_COOKIE_NAME,
   verifyCafeSessionCookie,
 } from "@/lib/auth/cafe-session";
+import { isSupabaseAdminConfigured } from "@/lib/auth/supabase";
 import { getPrisma } from "@/lib/db";
 import { startOfTodayUtc } from "@/lib/utils/time";
 
@@ -56,7 +58,7 @@ export default async function CafeShopPage({ params }: PageProps) {
 
   const today = startOfTodayUtc();
   const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const [paidToday, revenueToday, voucherRedemptions, failedAuths, thirtyDayRevenue, transactions] =
+  const [paidToday, revenueToday, voucherRedemptions, failedAuths, thirtyDayRevenue, transactions, members] =
     await Promise.all([
       prisma.order.count({ where: { shopId: shop.id, paidAt: { gte: today } } }),
       prisma.order.aggregate({
@@ -78,6 +80,21 @@ export default async function CafeShopPage({ params }: PageProps) {
         include: { pricePlan: true },
         orderBy: { createdAt: "desc" },
         take: 12,
+      }),
+      prisma.shopMember.findMany({
+        where: { shopId: shop.id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              supabaseUserId: true,
+              lastLoginAt: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
       }),
     ]);
 
@@ -210,6 +227,19 @@ export default async function CafeShopPage({ params }: PageProps) {
           <PricePlanForm shopId={shop.id} />
         </div>
       </section>
+
+      <CafeMembersPanel
+        shopId={shop.id}
+        supabaseAdminConfigured={isSupabaseAdminConfigured()}
+        members={members.map((member) => ({
+          id: member.id,
+          role: member.role,
+          user: {
+            ...member.user,
+            lastLoginAt: member.user.lastLoginAt?.toISOString() ?? null,
+          },
+        }))}
+      />
 
       <section className="surface grid gap-3 p-4">
         <div className="flex items-center gap-2">
