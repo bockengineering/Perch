@@ -1003,6 +1003,14 @@ pre {
     grid-template-columns: 1fr auto auto;
   }
 
+  .hero-copy {
+    max-width: min(52rem, 50vw);
+  }
+
+  .hero-panel-phone {
+    right: 25%;
+  }
+
   .sales-links {
     display: flex;
   }

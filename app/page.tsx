@@ -1,4 +1,4 @@
-import { ArrowRight, BarChart3, KeyRound, ShieldCheck, Store, Wifi } from "lucide-react";
+import { ArrowRight, BarChart3, KeyRound, LogIn, ShieldCheck, Store, Wifi } from "lucide-react";
 import Link from "next/link";
 
 const demoPortalHref =
@@ -51,9 +51,9 @@ export default function HomePage() {
           <a href="#pricing">Pricing</a>
           <Link href="/demo">Demo</Link>
         </nav>
-        <Link href="/demo" className="sales-nav-cta">
-          View demo
-          <ArrowRight size={16} aria-hidden="true" />
+        <Link href="/cafe/login" className="sales-nav-cta">
+          Cafe login
+          <LogIn size={16} aria-hidden="true" />
         </Link>
       </header>
 
@@ -100,8 +100,8 @@ export default function HomePage() {
               Open demo
               <ArrowRight size={18} aria-hidden="true" />
             </Link>
-            <Link href="/cafe" className="secondary-action">
-              Cafe panel
+            <Link href="/cafe/login" className="secondary-action">
+              Cafe owner login
             </Link>
           </div>
         </div>
