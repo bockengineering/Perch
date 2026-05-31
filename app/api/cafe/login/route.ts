@@ -7,7 +7,7 @@ import {
   safeCafeRedirectPath,
 } from "@/lib/auth/cafe-session";
 import { resolveCafeAccountForLocalDemo, resolveCafeAccountForSupabaseUser } from "@/lib/auth/cafe-account";
-import { hostedPreviewCafeAccount, isHostedPreviewCafeLogin } from "@/lib/auth/hosted-preview";
+import { hostedPreviewCafeAccount, isDemoCafeLogin, isHostedPreviewCafeLogin } from "@/lib/auth/hosted-preview";
 import { isSupabaseAuthConfigured, signInWithSupabasePassword } from "@/lib/auth/supabase";
 
 export async function POST(request: NextRequest) {
@@ -18,7 +18,9 @@ export async function POST(request: NextRequest) {
 
   let account = null;
 
-  if (isSupabaseAuthConfigured()) {
+  const supabaseConfigured = isSupabaseAuthConfigured();
+
+  if (supabaseConfigured) {
     const signIn = await signInWithSupabasePassword(email, password);
     if (signIn.ok && signIn.user.email) {
       const name = typeof signIn.user.user_metadata?.name === "string" ? signIn.user.user_metadata.name : null;
@@ -28,9 +30,13 @@ export async function POST(request: NextRequest) {
         name,
       });
     }
-  } else if (isHostedPreviewCafeLogin(email, password)) {
+  }
+
+  if (!account && isHostedPreviewCafeLogin(email, password)) {
     account = hostedPreviewCafeAccount();
-  } else if (isCafeLoginValid(email, password)) {
+  } else if (!account && isDemoCafeLogin(email, password)) {
+    account = await resolveCafeAccountForLocalDemo(email);
+  } else if (!account && !supabaseConfigured && isCafeLoginValid(email, password)) {
     account = await resolveCafeAccountForLocalDemo(email);
   }
 

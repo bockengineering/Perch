@@ -11,6 +11,7 @@ import {
   safeCafeRedirectPath,
   verifyCafeSessionCookie,
 } from "@/lib/auth/cafe-session";
+import { isDemoCafeLogin } from "@/lib/auth/hosted-preview";
 import { isSupabaseAdminConfigured, isSupabaseAuthConfigured } from "@/lib/auth/supabase";
 
 describe("MAC utilities", () => {
@@ -88,6 +89,11 @@ describe("cafe login session", () => {
     assert.equal(safeCafeRedirectPath("https://example.com"), "/cafe");
     assert.equal(safeCafeRedirectPath("//example.com"), "/cafe");
     assert.equal(safeCafeRedirectPath("/\\example.com"), "/cafe");
+  });
+
+  it("recognizes the seeded live demo cafe login", () => {
+    assert.equal(isDemoCafeLogin("PERCH.DEMO.OWNER@gmail.com", "Perch-demo-2026!"), true);
+    assert.equal(isDemoCafeLogin("perch.demo.owner@gmail.com", "wrong"), false);
   });
 });
 

@@ -14,9 +14,12 @@ export function hostedPreviewDemoEnabled() {
 export function isHostedPreviewCafeLogin(email: string, password: string) {
   return (
     hostedPreviewDemoEnabled() &&
-    email.trim().toLowerCase() === hostedPreviewCafeCredentials.email &&
-    password === hostedPreviewCafeCredentials.password
+    isDemoCafeLogin(email, password)
   );
+}
+
+export function isDemoCafeLogin(email: string, password: string) {
+  return email.trim().toLowerCase() === hostedPreviewCafeCredentials.email && password === hostedPreviewCafeCredentials.password;
 }
 
 export function hostedPreviewCafeAccount(): CafeAccount {
