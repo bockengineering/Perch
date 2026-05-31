@@ -153,17 +153,7 @@ export default async function ShopDetailPage({ params }: PageProps) {
           <Ticket size={18} />
           <h2 className="text-xl font-semibold">Price plans</h2>
         </div>
-        <div className="grid gap-2">
-          {shop.pricePlans.map((plan) => (
-            <div key={plan.id} className="flex items-center justify-between border-b border-[var(--border)] py-2 text-sm last:border-0">
-              <span className="font-semibold">{plan.label}</span>
-              <span>
-                ${(plan.amountCents / 100).toFixed(0)} / {plan.durationMinutes} min
-              </span>
-            </div>
-          ))}
-        </div>
-        <PricePlanForm shopId={shop.id} />
+        <PricePlanForm shopId={shop.id} plans={shop.pricePlans} />
       </section>
     </main>
   );

@@ -314,13 +314,19 @@ export async function grantPaidAccess(orderId: string) {
   return { ok: true };
 }
 
-export async function startStripeConnectOnboarding(shopId: string) {
+export async function startStripeConnectOnboarding(
+  shopId: string,
+  options: { returnPath?: "admin" | "cafe" } = {},
+) {
   const prisma = getPrisma();
   const shop = await prisma.shop.findUnique({ where: { id: shopId } });
 
   if (!shop) {
     throw new Error("Shop not found");
   }
+
+  const returnPath = options.returnPath ?? "admin";
+  const returnTarget = returnPath === "cafe" ? `/cafe/shops/${shop.id}` : `/admin/shops/${shop.id}`;
 
   if (!hasRealStripeSecret() || process.env.STRIPE_MOCK_CHECKOUT === "true") {
     await prisma.shop.update({
@@ -331,7 +337,7 @@ export async function startStripeConnectOnboarding(shopId: string) {
         stripePayoutsEnabled: true,
       },
     });
-    return `${appUrl()}/admin/shops/${shop.id}?stripe=mock-connected`;
+    return `${appUrl()}${returnTarget}?stripe=mock-connected`;
   }
 
   const stripe = getStripe();
@@ -361,8 +367,8 @@ export async function startStripeConnectOnboarding(shopId: string) {
 
   const accountLink = await stripe.accountLinks.create({
     account: accountId,
-    refresh_url: `${appUrl()}/admin/shops/${shop.id}?stripe=refresh`,
-    return_url: `${appUrl()}/api/admin/shops/${shop.id}/stripe/connect/return`,
+    refresh_url: `${appUrl()}${returnTarget}?stripe=refresh`,
+    return_url: `${appUrl()}/api/admin/shops/${shop.id}/stripe/connect/return?destination=${returnPath}`,
     type: "account_onboarding",
   });
 

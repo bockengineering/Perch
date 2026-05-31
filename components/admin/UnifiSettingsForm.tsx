@@ -78,7 +78,7 @@ export function UnifiSettingsForm({
           id="apiKey"
           name="apiKey"
           type="password"
-          placeholder="Paste new key to test or save"
+          placeholder={defaults.apiBaseUrl ? "Leave blank to keep the saved key" : "Paste UniFi API key"}
           className="rounded-md border border-[var(--border)] px-3 py-2 text-sm"
         />
       </div>

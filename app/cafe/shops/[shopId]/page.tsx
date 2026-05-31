@@ -607,18 +607,8 @@ export default async function CafeShopPage({ params }: PageProps) {
 
             <div className="surface grid gap-4 p-4">
               <SectionTitle icon={CreditCard} title="Paid plans" detail="Plans shown on the paywall after the daily free hour ends." />
-              <div className="grid gap-2">
-                {shop.pricePlans.map((plan) => (
-                  <div key={plan.id} className="flex items-center justify-between border-b border-[var(--border)] py-2 text-sm last:border-0">
-                    <span className="font-semibold">{plan.label}</span>
-                    <span>
-                      {money(plan.amountCents)} / {plan.durationMinutes} min
-                    </span>
-                  </div>
-                ))}
-                {shop.pricePlans.length === 0 ? <p className="text-sm text-[var(--muted)]">No paid plans configured yet.</p> : null}
-              </div>
-              <PricePlanForm shopId={shop.id} />
+              {shop.pricePlans.length === 0 ? <p className="text-sm text-[var(--muted)]">No paid plans configured yet.</p> : null}
+              <PricePlanForm shopId={shop.id} plans={shop.pricePlans} />
             </div>
           </section>
 

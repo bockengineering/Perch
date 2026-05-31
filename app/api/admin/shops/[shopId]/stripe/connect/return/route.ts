@@ -8,8 +8,10 @@ type RouteContext = {
   params: Promise<{ shopId: string }>;
 };
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
   const { shopId } = await context.params;
+  const requestUrl = new URL(request.url);
+  const destination = requestUrl.searchParams.get("destination") === "cafe" ? "cafe" : "admin";
   const prisma = getPrisma();
   const shop = await prisma.shop.findUnique({ where: { id: shopId } });
 
@@ -24,5 +26,6 @@ export async function GET(_request: Request, context: RouteContext) {
     });
   }
 
-  return NextResponse.redirect(new URL(`/admin/shops/${shopId}`, process.env.APP_URL ?? "http://localhost:3000"));
+  const path = destination === "cafe" ? `/cafe/shops/${shopId}` : `/admin/shops/${shopId}`;
+  return NextResponse.redirect(new URL(`${path}?stripe=returned`, request.url));
 }

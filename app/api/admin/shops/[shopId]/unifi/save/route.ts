@@ -14,7 +14,10 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   apiBaseUrl: z.string().url(),
-  apiKey: z.string().min(1),
+  apiKey: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    z.string().min(1).optional(),
+  ),
   siteId: z.string().min(1),
   siteName: z.string().min(1).optional(),
   allowedSsids: z.array(z.string()).default([]),
@@ -36,11 +39,21 @@ export async function POST(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Invalid UniFi settings payload." }, { status: 400 });
   }
 
-  const integration = await getPrisma().uniFiIntegration.upsert({
+  const prisma = getPrisma();
+  const existingIntegration = await prisma.uniFiIntegration.findUnique({ where: { shopId } });
+  if (!parsed.data.apiKey && !existingIntegration) {
+    return NextResponse.json({ error: "An API key is required before UniFi settings can be saved." }, { status: 400 });
+  }
+
+  const apiKeyEncrypted = parsed.data.apiKey
+    ? encryptSecret(parsed.data.apiKey)
+    : existingIntegration?.apiKeyEncrypted;
+
+  const integration = await prisma.uniFiIntegration.upsert({
     where: { shopId },
     update: {
       apiBaseUrl: parsed.data.apiBaseUrl,
-      apiKeyEncrypted: encryptSecret(parsed.data.apiKey),
+      apiKeyEncrypted,
       siteId: parsed.data.siteId,
       siteName: parsed.data.siteName ?? parsed.data.siteId,
       allowedSsids: parsed.data.allowedSsids,
@@ -51,7 +64,7 @@ export async function POST(request: Request, context: RouteContext) {
     create: {
       shopId,
       apiBaseUrl: parsed.data.apiBaseUrl,
-      apiKeyEncrypted: encryptSecret(parsed.data.apiKey),
+      apiKeyEncrypted: apiKeyEncrypted!,
       siteId: parsed.data.siteId,
       siteName: parsed.data.siteName ?? parsed.data.siteId,
       allowedSsids: parsed.data.allowedSsids,

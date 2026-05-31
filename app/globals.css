@@ -1069,6 +1069,10 @@ pre {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
+  .md\:grid {
+    display: grid;
+  }
+
   .cafe-login-shell {
     grid-template-columns: minmax(0, 1.2fr) minmax(22rem, 0.8fr);
   }
@@ -1082,8 +1086,16 @@ pre {
     grid-template-columns: 1fr 120px 120px 90px auto;
   }
 
+  [class~="md:grid-cols-[1fr_120px_120px_90px_80px_auto]"] {
+    grid-template-columns: 1fr 120px 120px 90px 80px auto;
+  }
+
   .md\:col-span-5 {
     grid-column: span 5 / span 5;
+  }
+
+  .md\:col-span-6 {
+    grid-column: span 6 / span 6;
   }
 }
 

@@ -14,6 +14,8 @@ export async function POST(request: Request, context: RouteContext) {
   if (cafeSession && !cafeSessionCanAccessShop(cafeSession, shopId, true)) {
     return NextResponse.json({ error: "Not authorized for this shop." }, { status: 403 });
   }
-  const url = await startStripeConnectOnboarding(shopId);
+  const url = await startStripeConnectOnboarding(shopId, {
+    returnPath: cafeSession ? "cafe" : "admin",
+  });
   return NextResponse.redirect(url);
 }
