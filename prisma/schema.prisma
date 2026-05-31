@@ -190,6 +190,7 @@ model DailyFreeAllowance {
 
   @@unique([shopId, deviceId, localDate])
   @@index([shopId, localDate])
+  @@index([deviceId])
 }
 
 model PortalSession {
@@ -208,6 +209,9 @@ model PortalSession {
 
   shop   Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
   device Device? @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+
+  @@index([shopId])
+  @@index([deviceId])
 }
 
 model AccessGrant {
@@ -238,6 +242,7 @@ model AccessGrant {
 
   @@index([shopId, deviceId, status, expiresAt])
   @@index([orderId])
+  @@index([deviceId])
 }
 
 model PricePlan {
@@ -284,6 +289,8 @@ model Order {
   @@index([shopId, status, createdAt])
   @@index([stripeCheckoutSessionId])
   @@index([stripePaymentIntentId])
+  @@index([deviceId])
+  @@index([pricePlanId])
 }
 
 model Voucher {
@@ -321,6 +328,7 @@ model VoucherRedemption {
 
   @@index([shopId, redeemedAt])
   @@index([deviceId])
+  @@index([voucherId])
 }
 
 model WebhookEvent {
@@ -358,6 +366,8 @@ model NetworkActionLog {
 
   @@index([shopId, createdAt])
   @@index([status, createdAt])
+  @@index([deviceId])
+  @@index([grantId])
 }
 
 model User {
@@ -385,6 +395,7 @@ model ShopMember {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([shopId, userId])
+  @@index([userId])
 }
 
 model PlatformUser {
