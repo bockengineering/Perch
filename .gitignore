@@ -18,3 +18,4 @@ pnpm-debug.log*
 *.tsbuildinfo
 
 prisma/dev.db
+.vercel
