@@ -137,6 +137,10 @@ textarea {
   display: inline-block;
 }
 
+.shrink-0 {
+  flex-shrink: 0;
+}
+
 .hidden {
   display: none;
 }
@@ -290,6 +294,10 @@ textarea {
   padding-bottom: 1rem;
 }
 
+.pb-2 {
+  padding-bottom: 0.5rem;
+}
+
 .pb-5 {
   padding-bottom: 1.25rem;
 }
@@ -398,6 +406,29 @@ textarea {
 
 .text-white {
   color: #fff;
+}
+
+.status-pill {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.status-ok {
+  color: var(--success);
+}
+
+.status-warning {
+  color: var(--warning);
+}
+
+.status-danger {
+  color: var(--danger);
 }
 
 [class~="text-[var(--accent)]"] {

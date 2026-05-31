@@ -22,8 +22,12 @@ type RouteContext = {
   params: Promise<{ shopId: string }>;
 };
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
   const { shopId } = await context.params;
+  const cafeSession = await getCafeSessionFromRequest(request);
+  if (cafeSession && !cafeSessionCanAccessShop(cafeSession, shopId)) {
+    return NextResponse.json({ error: "Not authorized for this shop." }, { status: 403 });
+  }
   const pricePlans = await getPrisma().pricePlan.findMany({
     where: { shopId },
     orderBy: { sortOrder: "asc" },

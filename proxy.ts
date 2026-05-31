@@ -18,6 +18,7 @@ export async function proxy(request: NextRequest) {
   const cafeLoginPath = path === "/cafe/login" || path.startsWith("/api/cafe/login");
   const cafeSessionPath =
     (path.startsWith("/cafe") && !cafeLoginPath) ||
+    path.startsWith("/staff") ||
     path.startsWith("/api/admin/shops") ||
     path.startsWith("/api/staff/shops");
   const adminBasicPath =
@@ -31,7 +32,7 @@ export async function proxy(request: NextRequest) {
     if (session) {
       return NextResponse.next();
     }
-    if (path.startsWith("/cafe")) {
+    if (path.startsWith("/cafe") || path.startsWith("/staff")) {
       return redirectToCafeLogin(request);
     }
     if (!isBasicAuthAllowed(request)) {

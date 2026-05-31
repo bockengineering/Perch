@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { VoucherCreateForm } from "@/components/staff/VoucherCreateForm";
+import { cafeSessionCanAccessShop } from "@/lib/auth/cafe-authorization";
+import { CAFE_SESSION_COOKIE_NAME, verifyCafeSessionCookie } from "@/lib/auth/cafe-session";
 import { getPrisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +14,10 @@ type PageProps = {
 
 export default async function StaffVouchersPage({ params }: PageProps) {
   const { shopId } = await params;
+  const session = await verifyCafeSessionCookie((await cookies()).get(CAFE_SESSION_COOKIE_NAME)?.value);
+  if (!cafeSessionCanAccessShop(session, shopId)) {
+    notFound();
+  }
   const shop = await getPrisma().shop.findUnique({
     where: { id: shopId },
     include: {
@@ -39,8 +46,8 @@ export default async function StaffVouchersPage({ params }: PageProps) {
           <p className="text-sm font-semibold text-[var(--accent)]">{shop.name}</p>
           <h1 className="text-2xl font-semibold">Staff codes</h1>
         </div>
-        <Link href={`/admin/shops/${shop.id}`} className="rounded-md border border-[var(--border)] px-3 py-2 text-sm font-semibold">
-          Admin
+        <Link href={`/cafe/shops/${shop.id}`} className="rounded-md border border-[var(--border)] px-3 py-2 text-sm font-semibold">
+          Cafe console
         </Link>
       </header>
 

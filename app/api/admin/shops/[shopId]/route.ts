@@ -28,6 +28,10 @@ type RouteContext = {
 
 export async function GET(_request: Request, context: RouteContext) {
   const { shopId } = await context.params;
+  const cafeSession = await getCafeSessionFromRequest(_request);
+  if (cafeSession && !cafeSessionCanAccessShop(cafeSession, shopId)) {
+    return NextResponse.json({ error: "Not authorized for this shop." }, { status: 403 });
+  }
   const shop = await getPrisma().shop.findUnique({
     where: { id: shopId },
     include: { unifiIntegration: true, pricePlans: true },

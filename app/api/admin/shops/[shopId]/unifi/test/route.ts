@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { IntegrationStatus, type UniFiIntegration } from "@prisma/client";
 import { z } from "zod";
+import { cafeSessionCanAccessShop, getCafeSessionFromRequest } from "@/lib/auth/cafe-authorization";
 import { encryptSecret } from "@/lib/crypto/field-encryption";
 import { networkProviderMode } from "@/lib/env";
 import { MockNetworkProvider } from "@/lib/network/mock-provider";
@@ -19,6 +20,10 @@ type RouteContext = {
 
 export async function POST(request: Request, context: RouteContext) {
   const { shopId } = await context.params;
+  const cafeSession = await getCafeSessionFromRequest(request);
+  if (cafeSession && !cafeSessionCanAccessShop(cafeSession, shopId, true)) {
+    return NextResponse.json({ error: "Not authorized for this shop." }, { status: 403 });
+  }
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid UniFi test payload." }, { status: 400 });
