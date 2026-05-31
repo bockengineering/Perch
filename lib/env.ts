@@ -2,6 +2,39 @@ export function appUrl() {
   return process.env.APP_URL ?? "http://localhost:3000";
 }
 
+function isUsableEnvValue(value: string | undefined) {
+  return Boolean(value && !value.includes("placeholder") && !value.includes("replace_with"));
+}
+
+export function databaseUrl() {
+  for (const name of [
+    "DATABASE_URL",
+    "POSTGRES_PRISMA_URL",
+    "POSTGRES_URL",
+    "POSTGRES_URL_NON_POOLING",
+    "SUPABASE_DB_URL",
+  ]) {
+    const value = process.env[name];
+    if (isUsableEnvValue(value)) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+export function databaseUrlConfigured() {
+  return Boolean(databaseUrl());
+}
+
+export function applyDatabaseUrlAlias() {
+  const value = databaseUrl();
+  if (value && !process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = value;
+  }
+  return value;
+}
+
 export function networkProviderMode() {
   const value = (process.env.NETWORK_PROVIDER_MODE ?? "mock").toLowerCase();
   return value === "unifi" ? "unifi" : "mock";
@@ -18,15 +51,15 @@ export function demoToolsEnabled() {
 
 export function requireServerEnv(name: string) {
   const value = process.env[name];
-  if (!value || value.includes("placeholder") || value.includes("replace_with")) {
+  if (!isUsableEnvValue(value)) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
-  return value;
+  return value!;
 }
 
 export function getOptionalServerEnv(name: string) {
   const value = process.env[name];
-  if (!value || value.includes("placeholder") || value.includes("replace_with")) {
+  if (!isUsableEnvValue(value)) {
     return undefined;
   }
   return value;

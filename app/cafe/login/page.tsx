@@ -80,7 +80,7 @@ export default async function CafeLoginPage({ searchParams }: PageProps) {
           <p className="login-help">
             {previewDemo
               ? `Preview demo: ${hostedPreviewCafeCredentials.email} / ${hostedPreviewCafeCredentials.password}`
-              : "For the demo environment, use the demo credentials shown on the setup screen."}
+              : "Use the cafe owner or staff account assigned to this cafe."}
           </p>
         </form>
       </section>

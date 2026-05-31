@@ -19,20 +19,21 @@ Perch expects Postgres. The app uses Prisma, Next.js App Router, TypeScript, Str
 
 Copy `.env.example` to `.env` and replace every placeholder:
 
-- `DATABASE_URL`: Postgres connection string.
+- `DATABASE_URL`: Postgres connection string. On Vercel with the Supabase integration, Perch also accepts `POSTGRES_PRISMA_URL`, `POSTGRES_URL`, `POSTGRES_URL_NON_POOLING`, or `SUPABASE_DB_URL`.
 - `APP_URL`: public app URL, for example `http://localhost:3000`.
 - `NEXTAUTH_SECRET`: auth/session secret placeholder for future auth expansion.
 - `ADMIN_BASIC_USERNAME` / `ADMIN_BASIC_PASSWORD`: basic admin/staff gate.
 - `CAFE_LOGIN_EMAIL` / `CAFE_LOGIN_PASSWORD`: cafe owner login for the cafe console.
 - `CAFE_SESSION_SECRET`: secret used to sign cafe console session cookies.
 - `SUPABASE_URL`: Supabase project URL for cafe-owner Auth.
-- `SUPABASE_PUBLISHABLE_KEY`: Supabase publishable browser-safe key, used server-side by Perch for password sign-in.
-- `SUPABASE_SECRET_KEY`: Supabase secret key for server-side account creation. Never expose this to the browser.
+- `SUPABASE_PUBLISHABLE_KEY`: Supabase publishable browser-safe key, used server-side by Perch for password sign-in. `SUPABASE_ANON_KEY` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are also supported for Vercel's Supabase integration.
+- `SUPABASE_SECRET_KEY`: Supabase secret key for server-side account creation. `SUPABASE_SERVICE_ROLE_KEY` is also supported. Never expose this to the browser.
 - `STRIPE_SECRET_KEY`: Stripe platform secret key.
 - `STRIPE_WEBHOOK_SECRET_CONNECT`: Stripe Connect webhook signing secret.
 - `STRIPE_CONNECT_CLIENT_ID`: Connect client ID if using OAuth-style flows.
 - `STRIPE_MOCK_CHECKOUT`: set `true` for local mock checkout URLs.
 - `DEMO_TOOLS_ENABLED`: enables local/staging-only demo reset and mock checkout completion routes.
+- `HOSTED_PREVIEW_DEMO_ENABLED`: optional fallback for static hosted previews. Leave `false` for editable cafe consoles.
 - `APP_MAC_PEPPER`: HMAC secret for per-shop MAC identity hashes.
 - `FIELD_ENCRYPTION_KEY`: 32-byte base64 or hex key for encrypted MACs and UniFi API keys.
 - `VOUCHER_CODE_SECRET`: HMAC secret for staff voucher codes.
@@ -137,6 +138,15 @@ SUPABASE_URL="https://your-project-ref.supabase.co"
 SUPABASE_PUBLISHABLE_KEY="sb_publishable_..."
 SUPABASE_SECRET_KEY="sb_secret_..."
 CAFE_SESSION_SECRET="replace_with_a_random_session_secret"
+```
+
+If the project is connected through Vercel's Supabase integration, the app can use the integration's aliases instead:
+
+```bash
+POSTGRES_PRISMA_URL="postgresql://..."
+SUPABASE_URL="https://your-project-ref.supabase.co"
+SUPABASE_ANON_KEY="..."
+SUPABASE_SERVICE_ROLE_KEY="..."
 ```
 
 The login form posts to Perch, Perch validates the email/password with Supabase Auth, then Perch checks its local `User` and `ShopMember` tables to decide which cafe console the user can access. Authorization does not rely on user-editable Supabase metadata.
@@ -248,7 +258,7 @@ Admin and staff routes are protected by HTTP Basic Auth through `proxy.ts`.
 
 ## Deployment Notes
 
-1. Provision Postgres and set `DATABASE_URL`.
+1. Provision Postgres and set `DATABASE_URL`, or connect Supabase through Vercel so `POSTGRES_PRISMA_URL` is available.
 2. Set all secrets in the deployment environment.
 3. Run `npm run db:push` or convert the schema to migrations before production launch.
 4. Seed only demo or initial admin data where appropriate.

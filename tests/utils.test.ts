@@ -4,12 +4,14 @@ import { normalizeMac, hashMac } from "@/lib/crypto/mac";
 import { safeRedirectUrl } from "@/lib/utils/redirect";
 import { getShopLocalDate } from "@/lib/utils/time";
 import { hashVoucherCode, normalizeVoucherCode } from "@/lib/services/vouchers";
+import { applyDatabaseUrlAlias, databaseUrl } from "@/lib/env";
 import {
   createCafeSessionCookie,
   isCafeLoginValid,
   safeCafeRedirectPath,
   verifyCafeSessionCookie,
 } from "@/lib/auth/cafe-session";
+import { isSupabaseAdminConfigured, isSupabaseAuthConfigured } from "@/lib/auth/supabase";
 
 describe("MAC utilities", () => {
   it("normalizes common MAC address formats", () => {
@@ -86,5 +88,60 @@ describe("cafe login session", () => {
     assert.equal(safeCafeRedirectPath("https://example.com"), "/cafe");
     assert.equal(safeCafeRedirectPath("//example.com"), "/cafe");
     assert.equal(safeCafeRedirectPath("/\\example.com"), "/cafe");
+  });
+});
+
+describe("deployment environment aliases", () => {
+  it("uses Vercel Supabase Postgres aliases for Prisma", () => {
+    const originalDatabaseUrl = process.env.DATABASE_URL;
+    const originalPostgresPrismaUrl = process.env.POSTGRES_PRISMA_URL;
+    delete process.env.DATABASE_URL;
+    process.env.POSTGRES_PRISMA_URL = "postgresql://example";
+
+    try {
+      assert.equal(databaseUrl(), "postgresql://example");
+      assert.equal(applyDatabaseUrlAlias(), "postgresql://example");
+      assert.equal(process.env.DATABASE_URL, "postgresql://example");
+    } finally {
+      if (originalDatabaseUrl === undefined) {
+        delete process.env.DATABASE_URL;
+      } else {
+        process.env.DATABASE_URL = originalDatabaseUrl;
+      }
+      if (originalPostgresPrismaUrl === undefined) {
+        delete process.env.POSTGRES_PRISMA_URL;
+      } else {
+        process.env.POSTGRES_PRISMA_URL = originalPostgresPrismaUrl;
+      }
+    }
+  });
+
+  it("recognizes Vercel Supabase auth key aliases", () => {
+    const originals = {
+      SUPABASE_URL: process.env.SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
+      SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
+      SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    };
+
+    process.env.SUPABASE_URL = "https://example.supabase.co";
+    delete process.env.SUPABASE_PUBLISHABLE_KEY;
+    delete process.env.SUPABASE_SECRET_KEY;
+    process.env.SUPABASE_ANON_KEY = "anon-key";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key";
+
+    try {
+      assert.equal(isSupabaseAuthConfigured(), true);
+      assert.equal(isSupabaseAdminConfigured(), true);
+    } finally {
+      for (const [name, value] of Object.entries(originals)) {
+        if (value === undefined) {
+          delete process.env[name];
+        } else {
+          process.env[name] = value;
+        }
+      }
+    }
   });
 });

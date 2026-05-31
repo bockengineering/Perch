@@ -8,16 +8,48 @@ type SupabasePasswordSignInResult =
   | { ok: true; user: SupabaseAuthUser; accessToken: string }
   | { ok: false; reason: "disabled" | "invalid" | "error"; message: string };
 
+function firstEnv(...names: string[]) {
+  for (const name of names) {
+    const value = process.env[name];
+    if (value && !value.includes("placeholder") && !value.includes("replace_with")) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+function firstKeyFromJsonEnv(name: string) {
+  const value = process.env[name];
+  if (!value) {
+    return undefined;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as Record<string, unknown>;
+    const key = Object.values(parsed).find((entry) => typeof entry === "string" && entry.length > 0);
+    return typeof key === "string" ? key : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function supabaseUrl() {
-  return process.env.SUPABASE_URL?.replace(/\/$/, "");
+  return firstEnv("SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL")?.replace(/\/$/, "");
 }
 
 function supabasePublishableKey() {
-  return process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  return (
+    firstEnv(
+      "SUPABASE_PUBLISHABLE_KEY",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "SUPABASE_ANON_KEY",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    ) ?? firstKeyFromJsonEnv("SUPABASE_PUBLISHABLE_KEYS")
+  );
 }
 
 function supabaseSecretKey() {
-  return process.env.SUPABASE_SECRET_KEY;
+  return firstEnv("SUPABASE_SECRET_KEY", "SUPABASE_SERVICE_ROLE_KEY") ?? firstKeyFromJsonEnv("SUPABASE_SECRET_KEYS");
 }
 
 export function isSupabaseAuthConfigured() {
