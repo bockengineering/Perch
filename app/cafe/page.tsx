@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { CAFE_SESSION_COOKIE_NAME, verifyCafeSessionCookie } from "@/lib/auth/cafe-session";
+import { hostedPreviewDemoEnabled, hostedPreviewShopId } from "@/lib/auth/hosted-preview";
 import { getPrisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -12,11 +13,16 @@ export default async function CafeHomePage() {
     redirect("/cafe/login?next=/cafe");
   }
 
-  const shops = await getPrisma().shop.findMany({
-    where: { id: { in: session.shopIds ?? [] } },
-    orderBy: { name: "asc" },
-    select: { id: true, name: true, status: true },
-  });
+  let shops: Array<{ id: string; name: string; status: string }> = [];
+  if (hostedPreviewDemoEnabled() && session.shopIds?.includes(hostedPreviewShopId)) {
+    shops = [{ id: hostedPreviewShopId, name: "Demo Cafe", status: "ACTIVE" }];
+  } else {
+    shops = await getPrisma().shop.findMany({
+      where: { id: { in: session.shopIds ?? [] } },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, status: true },
+    });
+  }
 
   if (shops.length === 1) {
     redirect(`/cafe/shops/${shops[0].id}`);

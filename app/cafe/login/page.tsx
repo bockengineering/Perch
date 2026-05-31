@@ -6,6 +6,7 @@ import {
   safeCafeRedirectPath,
   verifyCafeSessionCookie,
 } from "@/lib/auth/cafe-session";
+import { hostedPreviewCafeCredentials, hostedPreviewDemoEnabled } from "@/lib/auth/hosted-preview";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default async function CafeLoginPage({ searchParams }: PageProps) {
   if (session) {
     redirect(nextPath);
   }
+  const previewDemo = hostedPreviewDemoEnabled();
 
   return (
     <main className="cafe-login-page">
@@ -75,7 +77,11 @@ export default async function CafeLoginPage({ searchParams }: PageProps) {
           <button className="primary-action" type="submit">
             Sign in
           </button>
-          <p className="login-help">For the demo environment, use the demo credentials shown on the setup screen.</p>
+          <p className="login-help">
+            {previewDemo
+              ? `Preview demo: ${hostedPreviewCafeCredentials.email} / ${hostedPreviewCafeCredentials.password}`
+              : "For the demo environment, use the demo credentials shown on the setup screen."}
+          </p>
         </form>
       </section>
     </main>

@@ -7,6 +7,7 @@ import {
   safeCafeRedirectPath,
 } from "@/lib/auth/cafe-session";
 import { resolveCafeAccountForLocalDemo, resolveCafeAccountForSupabaseUser } from "@/lib/auth/cafe-account";
+import { hostedPreviewCafeAccount, isHostedPreviewCafeLogin } from "@/lib/auth/hosted-preview";
 import { isSupabaseAuthConfigured, signInWithSupabasePassword } from "@/lib/auth/supabase";
 
 export async function POST(request: NextRequest) {
@@ -27,6 +28,8 @@ export async function POST(request: NextRequest) {
         name,
       });
     }
+  } else if (isHostedPreviewCafeLogin(email, password)) {
+    account = hostedPreviewCafeAccount();
   } else if (isCafeLoginValid(email, password)) {
     account = await resolveCafeAccountForLocalDemo(email);
   }
