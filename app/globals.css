@@ -957,6 +957,12 @@ pre {
   font-weight: 720;
 }
 
+.brand-lockup-wordmark {
+  display: block;
+  width: 8.25rem;
+  height: auto;
+}
+
 .cafe-login-copy h1 {
   max-width: 42rem;
   margin: 0;

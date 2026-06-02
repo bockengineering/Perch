@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 /**
  * Perch — marketing homepage.
@@ -14,12 +15,7 @@ import Link from "next/link";
 const demoPortalHref =
   "/p/demo-cafe?id=AA:BB:CC:DD:EE:FF&ap=11:22:33:44:55:66&ssid=DemoGuest&url=https%3A%2F%2Fwww.google.com";
 
-const BrandMark = ({ size = 26 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 26 26" fill="none" aria-hidden="true">
-    <circle cx="13" cy="10.5" r="6.2" fill="var(--accent)" />
-    <line x1="3.5" y1="20.5" x2="22.5" y2="20.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
+const wordmarkHref = "/brand/perch-wordmark-primary.svg";
 
 const ArrowRight = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -48,8 +44,7 @@ export default function HomePage() {
       <header className="nav">
         <div className="wrap nav__inner">
           <Link href="/" className="brand" aria-label="Perch home">
-            <BrandMark />
-            <span>Perch</span>
+            <Image className="brand__wordmark" src={wordmarkHref} alt="Perch" width={118} height={52} priority />
           </Link>
           <nav className="nav__links" aria-label="Main">
             <a href="#how">How it works</a>
@@ -346,7 +341,9 @@ export default function HomePage() {
         <div className="wrap">
           <div className="footer__top">
             <div>
-              <div className="footer__brand"><BrandMark /><span>Perch</span></div>
+              <div className="footer__brand">
+                <Image className="footer__wordmark" src={wordmarkHref} alt="Perch" width={122} height={53} />
+              </div>
               <p className="footer__tag">Guest Wi-Fi that pays for itself: generous to your guests, gentle on your tables.</p>
             </div>
             <div className="footer__col">
@@ -451,7 +448,8 @@ const CSS = `
 /* nav */
 .perch-home .nav { position: sticky; top: 0; z-index: 50; background: oklch(0.973 0.009 83 / 0.82); backdrop-filter: saturate(1.3) blur(14px); border-bottom: 1px solid var(--line-soft); }
 .perch-home .nav__inner { display: flex; align-items: center; justify-content: space-between; height: 70px; }
-.perch-home .brand { display: inline-flex; align-items: center; gap: 11px; font-family: "Newsreader", serif; font-size: 23px; font-weight: 520; letter-spacing: -0.01em; }
+.perch-home .brand { display: inline-flex; align-items: center; }
+.perch-home .brand__wordmark { display: block; width: 118px; height: auto; }
 .perch-home .nav__links { display: flex; align-items: center; gap: 30px; }
 .perch-home .nav__links a { font-size: 15px; color: var(--ink-2); transition: color .2s; }
 .perch-home .nav__links a:hover { color: var(--ink); }
@@ -626,7 +624,8 @@ const CSS = `
 /* footer */
 .perch-home .footer { background: var(--paper); border-top: 1px solid var(--line); padding-block: clamp(48px, 6vw, 72px) 36px; }
 .perch-home .footer__top { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; }
-.perch-home .footer__brand { display: inline-flex; align-items: center; gap: 11px; font-family: "Newsreader", serif; font-size: 22px; font-weight: 520; }
+.perch-home .footer__brand { display: inline-flex; align-items: center; }
+.perch-home .footer__wordmark { display: block; width: 122px; height: auto; }
 .perch-home .footer__tag { margin-top: 16px; color: var(--muted); font-size: 15px; max-width: 30ch; }
 .perch-home .footer__col h4 { font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin: 0 0 16px; }
 .perch-home .footer__col a { display: block; color: var(--ink-2); font-size: 15px; padding: 5px 0; transition: color .2s; }
