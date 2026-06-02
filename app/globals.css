@@ -92,6 +92,12 @@ textarea {
   letter-spacing: 0;
 }
 
+.app-wordmark {
+  display: block;
+  width: 6.5rem;
+  height: auto;
+}
+
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
@@ -493,6 +499,11 @@ textarea::placeholder {
   color: #77776f;
 }
 
+.brand-color-input {
+  min-height: 2.75rem;
+  padding: 0.25rem;
+}
+
 .account-checkbox {
   width: 1rem;
   min-height: 1rem;
@@ -516,6 +527,42 @@ th {
 
 svg {
   stroke-width: 1.75;
+}
+
+.portal-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--shop-accent, var(--foreground));
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.portal-brand-dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.portal-brand-logo {
+  display: inline-block;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--border-soft);
+  background-color: #fff;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.portal-brand-name {
+  color: var(--foreground);
+}
+
+.portal-primary-action {
+  background: var(--shop-accent, var(--foreground));
 }
 
 pre {

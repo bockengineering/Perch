@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { BrandWordmark } from "@/components/BrandWordmark";
 
 /**
  * Perch — marketing homepage.
@@ -14,8 +14,6 @@ import Image from "next/image";
 
 const demoPortalHref =
   "/p/demo-cafe?id=AA:BB:CC:DD:EE:FF&ap=11:22:33:44:55:66&ssid=DemoGuest&url=https%3A%2F%2Fwww.google.com";
-
-const wordmarkHref = "/brand/perch-wordmark-primary.svg";
 
 const ArrowRight = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -44,7 +42,7 @@ export default function HomePage() {
       <header className="nav">
         <div className="wrap nav__inner">
           <Link href="/" className="brand" aria-label="Perch home">
-            <Image className="brand__wordmark" src={wordmarkHref} alt="Perch" width={118} height={52} priority />
+            <BrandWordmark className="brand__wordmark" width={118} height={52} priority />
           </Link>
           <nav className="nav__links" aria-label="Main">
             <a href="#how">How it works</a>
@@ -342,7 +340,7 @@ export default function HomePage() {
           <div className="footer__top">
             <div>
               <div className="footer__brand">
-                <Image className="footer__wordmark" src={wordmarkHref} alt="Perch" width={122} height={53} />
+                <BrandWordmark className="footer__wordmark" width={122} height={53} />
               </div>
               <p className="footer__tag">Guest Wi-Fi that pays for itself: generous to your guests, gentle on your tables.</p>
             </div>

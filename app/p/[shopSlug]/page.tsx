@@ -39,7 +39,7 @@ export default async function CaptivePortalPage({ params, searchParams }: PagePr
   if (sessionId && !query.id) {
     const session = await prisma.portalSession.findUnique({ where: { id: sessionId } });
     if (!session || session.shopId !== shop.id) {
-      return <ErrorScreen retryHref={`/p/${shop.slug}`} supportEmail={shop.supportEmail} />;
+      return <ErrorScreen retryHref={`/p/${shop.slug}`} supportEmail={shop.supportEmail} shop={shop} />;
     }
 
     return <Paywall shop={shop} portalSessionId={session.id} plans={shop.pricePlans} />;
@@ -49,7 +49,7 @@ export default async function CaptivePortalPage({ params, searchParams }: PagePr
   try {
     portalParams = parseUniFiPortalParams(query);
   } catch {
-    return <ErrorScreen retryHref={`/p/${shop.slug}`} supportEmail={shop.supportEmail} />;
+    return <ErrorScreen retryHref={`/p/${shop.slug}`} supportEmail={shop.supportEmail} shop={shop} />;
   }
 
   const requestHeaders = await headers();
@@ -106,7 +106,7 @@ export default async function CaptivePortalPage({ params, searchParams }: PagePr
       where: { id: portalSession.id },
       data: { status: "ERROR" },
     });
-    return <ErrorScreen retryHref={`/p/${shop.slug}?${new URLSearchParams(portalParams.raw)}`} supportEmail={shop.supportEmail} />;
+    return <ErrorScreen retryHref={`/p/${shop.slug}?${new URLSearchParams(portalParams.raw)}`} supportEmail={shop.supportEmail} shop={shop} />;
   }
 
   await prisma.portalSession.update({

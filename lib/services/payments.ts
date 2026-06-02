@@ -177,7 +177,7 @@ export async function createStripeCheckoutSession(input: {
             currency: input.pricePlan.currency,
             unit_amount: input.pricePlan.amountCents,
             product_data: {
-              name: `Perch Wi-Fi: ${input.pricePlan.label}`,
+              name: `${input.shop.name} Wi-Fi: ${input.pricePlan.label}`,
             },
           },
           quantity: 1,

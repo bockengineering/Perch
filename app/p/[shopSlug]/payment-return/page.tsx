@@ -1,4 +1,5 @@
 import { DemoCompleteCheckoutButton } from "@/components/demo/DemoCompleteCheckoutButton";
+import { PortalBrand, shopAccentStyle } from "@/components/portal/PortalBrand";
 import { PaymentReturnWatcher } from "@/components/portal/PaymentReturnWatcher";
 import { redirect } from "next/navigation";
 import { getPrisma } from "@/lib/db";
@@ -14,7 +15,20 @@ type PageProps = {
 export default async function PaymentReturnPage({ searchParams }: PageProps) {
   const query = await searchParams;
   const orderId = Array.isArray(query.orderId) ? query.orderId[0] : query.orderId;
-  const order = orderId ? await getPrisma().order.findUnique({ where: { id: orderId } }) : null;
+  const order = orderId
+    ? await getPrisma().order.findUnique({
+        where: { id: orderId },
+        include: {
+          shop: {
+            select: {
+              name: true,
+              brandLogoUrl: true,
+              brandPrimaryColor: true,
+            },
+          },
+        },
+      })
+    : null;
   const showDemoPaymentControl =
     demoToolsEnabled() && process.env.STRIPE_MOCK_CHECKOUT === "true" && order?.status === "CHECKOUT_STARTED";
 
@@ -34,9 +48,9 @@ export default async function PaymentReturnPage({ searchParams }: PageProps) {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-5 py-10">
+    <main className="flex min-h-screen items-center justify-center px-5 py-10" style={shopAccentStyle(order?.shop.brandPrimaryColor)}>
       <section className="surface w-full max-w-md p-6">
-        <p className="text-sm font-semibold text-[var(--accent)]">Perch</p>
+        {order?.shop ? <PortalBrand shop={order.shop} /> : <p className="text-sm font-semibold text-[var(--accent)]">Perch</p>}
         <h1 className="mt-3 text-2xl font-semibold">{title}</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">{body}</p>
         {order ? <PaymentReturnWatcher orderId={order.id} enabled={order.status !== "FAILED"} /> : null}

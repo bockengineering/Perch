@@ -58,6 +58,7 @@ export async function seedDemoData(prisma: PrismaClient) {
       stripeConnectedAccountId: "acct_mock_demo",
       stripeChargesEnabled: true,
       stripePayoutsEnabled: true,
+      brandPrimaryColor: "#35684e",
       supportEmail: "staff@demo-cafe.local",
     },
     create: {
@@ -73,6 +74,7 @@ export async function seedDemoData(prisma: PrismaClient) {
       stripeConnectedAccountId: "acct_mock_demo",
       stripeChargesEnabled: true,
       stripePayoutsEnabled: true,
+      brandPrimaryColor: "#35684e",
       supportEmail: "staff@demo-cafe.local",
     },
   });

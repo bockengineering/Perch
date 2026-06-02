@@ -13,6 +13,8 @@ type CafeSettingsFormProps = {
     checkoutGraceMinutes: number;
     maxCheckoutGracePerDay: number;
     supportEmail: string | null;
+    brandLogoUrl: string | null;
+    brandPrimaryColor: string | null;
   };
 };
 
@@ -32,6 +34,8 @@ export function CafeSettingsForm({ shop }: CafeSettingsFormProps) {
         checkoutGraceMinutes: Number(formData.get("checkoutGraceMinutes")),
         maxCheckoutGracePerDay: Number(formData.get("maxCheckoutGracePerDay")),
         supportEmail: formData.get("supportEmail") || null,
+        brandLogoUrl: formData.get("brandLogoUrl") || null,
+        brandPrimaryColor: formData.get("brandPrimaryColor") || null,
       }),
     });
 
@@ -126,6 +130,28 @@ export function CafeSettingsForm({ shop }: CafeSettingsFormProps) {
           className="rounded-md border border-[var(--border)] px-3 py-2 font-normal"
         />
       </label>
+
+      <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+        <label className="grid gap-1 text-sm font-medium">
+          Cafe logo URL
+          <input
+            name="brandLogoUrl"
+            type="url"
+            defaultValue={shop.brandLogoUrl ?? ""}
+            placeholder="https://example.com/logo.svg"
+            className="rounded-md border border-[var(--border)] px-3 py-2 font-normal"
+          />
+        </label>
+        <label className="grid gap-1 text-sm font-medium">
+          Portal color
+          <input
+            name="brandPrimaryColor"
+            type="color"
+            defaultValue={shop.brandPrimaryColor ?? "#080808"}
+            className="brand-color-input rounded-md border border-[var(--border)] px-3 py-2 font-normal"
+          />
+        </label>
+      </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <button className="inline-flex items-center justify-center gap-2 rounded-md bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-white">

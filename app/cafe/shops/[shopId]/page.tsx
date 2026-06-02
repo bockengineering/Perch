@@ -15,6 +15,7 @@ import {
   Ticket,
   Wifi,
 } from "lucide-react";
+import { BrandWordmark } from "@/components/BrandWordmark";
 import { CafeSettingsForm } from "@/components/cafe/CafeSettingsForm";
 import { CafeMembersPanel } from "@/components/cafe/CafeMembersPanel";
 import { PricePlanForm } from "@/components/admin/PricePlanForm";
@@ -92,7 +93,8 @@ function HostedPreviewCafeConsole() {
     <main className="mx-auto grid max-w-6xl gap-6 px-6 py-8">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-5">
         <div>
-          <p className="text-sm font-semibold text-[var(--accent)]">Cafe back office</p>
+          <BrandWordmark className="app-wordmark" width={104} height={46} priority />
+          <p className="mt-3 text-sm font-semibold text-[var(--accent)]">Cafe back office</p>
           <h1 className="text-3xl font-semibold">Demo Cafe</h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
             Preview console with mock cafe settings, transactions, and staff-code controls.
@@ -414,7 +416,8 @@ export default async function CafeShopPage({ params }: PageProps) {
     <main className="mx-auto grid max-w-6xl gap-6 px-6 py-8">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-5">
         <div>
-          <p className="text-sm font-semibold text-[var(--accent)]">Cafe console</p>
+          <BrandWordmark className="app-wordmark" width={104} height={46} priority />
+          <p className="mt-3 text-sm font-semibold text-[var(--accent)]">Cafe console</p>
           <h1 className="text-3xl font-semibold">{shop.name}</h1>
           <div className="mt-3 flex flex-wrap gap-2">
             <StatusPill status={shop.status}>{shop.status}</StatusPill>
@@ -598,6 +601,8 @@ export default async function CafeShopPage({ params }: PageProps) {
                   checkoutGraceMinutes: shop.checkoutGraceMinutes,
                   maxCheckoutGracePerDay: shop.maxCheckoutGracePerDay,
                   supportEmail: shop.supportEmail,
+                  brandLogoUrl: shop.brandLogoUrl,
+                  brandPrimaryColor: shop.brandPrimaryColor,
                 }}
               />
               <p className="text-sm text-[var(--muted)]">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { BrandWordmark } from "@/components/BrandWordmark";
 import { CAFE_SESSION_COOKIE_NAME, verifyCafeSessionCookie } from "@/lib/auth/cafe-session";
 import { hostedPreviewDemoEnabled, hostedPreviewShopId } from "@/lib/auth/hosted-preview";
 import { getPrisma } from "@/lib/db";
@@ -31,7 +32,7 @@ export default async function CafeHomePage() {
   return (
     <main className="mx-auto grid max-w-3xl gap-6 px-5 py-10">
       <section className="surface p-6">
-        <p className="text-sm font-semibold text-[var(--accent)]">Perch</p>
+        <BrandWordmark className="app-wordmark" width={104} height={46} priority />
         <h1 className="mt-3 text-3xl font-semibold">
           {shops.length === 0 ? "No cafes are assigned to this account." : "Choose a cafe."}
         </h1>

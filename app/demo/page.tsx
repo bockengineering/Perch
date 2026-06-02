@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandWordmark } from "@/components/BrandWordmark";
 import { DemoExpireAccessButton } from "@/components/demo/DemoExpireAccessButton";
 import { DemoResetButton } from "@/components/demo/DemoResetButton";
 import { appUrl, demoToolsEnabled } from "@/lib/env";
@@ -12,7 +13,8 @@ function SetupBlock() {
   return (
     <main className="mx-auto grid max-w-3xl gap-6 px-5 py-10">
       <section className="surface p-6">
-        <p className="text-sm font-semibold text-[var(--accent)]">Perch demo</p>
+        <BrandWordmark className="app-wordmark" width={104} height={46} priority />
+        <p className="mt-3 text-sm font-semibold text-[var(--accent)]">Demo environment</p>
         <h1 className="mt-3 text-3xl font-semibold">Demo tools are disabled.</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
           Run the local demo environment or set `DEMO_TOOLS_ENABLED=true` in a non-production environment.
@@ -75,7 +77,8 @@ export default async function DemoPage() {
     <main className="mx-auto grid max-w-6xl gap-6 px-6 py-8">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-5">
         <div>
-          <p className="text-sm font-semibold text-[var(--accent)]">Perch demo</p>
+          <BrandWordmark className="app-wordmark" width={104} height={46} priority />
+          <p className="mt-3 text-sm font-semibold text-[var(--accent)]">Demo environment</p>
           <h1 className="text-3xl font-semibold">Safe mock environment</h1>
           <p className="mt-2 text-sm text-[var(--muted)]">
             Mock UniFi, mock Stripe, demo-only reset controls, and no customer hardware.

@@ -1,4 +1,5 @@
 import type { PricePlan, Shop } from "@prisma/client";
+import { PortalBrand, shopAccentStyle } from "./PortalBrand";
 import { PaywallActions } from "./PaywallActions";
 
 export function Paywall({
@@ -6,14 +7,14 @@ export function Paywall({
   portalSessionId,
   plans,
 }: {
-  shop: Pick<Shop, "name" | "brandPrimaryColor">;
+  shop: Pick<Shop, "name" | "brandLogoUrl" | "brandPrimaryColor">;
   portalSessionId: string;
   plans: PricePlan[];
 }) {
   return (
-    <main className="flex min-h-screen items-center justify-center px-5 py-10">
+    <main className="flex min-h-screen items-center justify-center px-5 py-10" style={shopAccentStyle(shop.brandPrimaryColor)}>
       <section className="surface w-full max-w-md p-6">
-        <p className="text-sm font-semibold text-[var(--accent)]">{shop.name}</p>
+        <PortalBrand shop={shop} />
         <h1 className="mt-3 text-2xl font-semibold">Your free Wi-Fi hour for today has ended.</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">Need more time?</p>
         <PaywallActions

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AlertTriangle, CreditCard, Store, Wifi } from "lucide-react";
+import { BrandWordmark } from "@/components/BrandWordmark";
 import { getPrisma } from "@/lib/db";
 import { startOfTodayUtc } from "@/lib/utils/time";
 
@@ -45,7 +46,7 @@ export default async function AdminDashboardPage() {
     <main className="mx-auto grid max-w-6xl gap-6 px-6 py-8">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-5">
         <div>
-          <p className="text-sm font-semibold text-[var(--accent)]">Perch</p>
+          <BrandWordmark className="app-wordmark" width={104} height={46} priority />
           <h1 className="text-3xl font-semibold">Platform dashboard</h1>
         </div>
         <Link className="rounded-md bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-white" href="/admin/shops">

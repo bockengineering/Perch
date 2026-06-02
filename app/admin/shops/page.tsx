@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandWordmark } from "@/components/BrandWordmark";
 import { ShopCreateForm } from "@/components/admin/ShopCreateForm";
 import { getPrisma } from "@/lib/db";
 
@@ -14,7 +15,8 @@ export default async function ShopsPage() {
     <main className="mx-auto grid max-w-6xl gap-6 px-6 py-8">
       <header className="flex items-center justify-between border-b border-[var(--border)] pb-5">
         <div>
-          <p className="text-sm font-semibold text-[var(--accent)]">Admin</p>
+          <BrandWordmark className="app-wordmark" width={104} height={46} priority />
+          <p className="mt-3 text-sm font-semibold text-[var(--accent)]">Admin</p>
           <h1 className="text-3xl font-semibold">Shops</h1>
         </div>
         <Link href="/admin" className="rounded-md border border-[var(--border)] px-4 py-2 text-sm font-semibold">

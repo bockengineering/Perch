@@ -81,7 +81,7 @@ export function PaywallActions({
           type="button"
           onClick={() => void startCheckout(plan.id)}
           disabled={Boolean(loading)}
-          className="w-full rounded-md bg-[var(--foreground)] px-4 py-3 text-left text-sm font-semibold text-white disabled:opacity-60"
+          className="portal-primary-action w-full rounded-md px-4 py-3 text-left text-sm font-semibold text-white disabled:opacity-60"
         >
           {loading === plan.id ? "Connecting..." : planButtonLabel(plan)}
         </button>

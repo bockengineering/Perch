@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CreditCard, Ticket, Wifi } from "lucide-react";
+import { BrandWordmark } from "@/components/BrandWordmark";
 import { PricePlanForm } from "@/components/admin/PricePlanForm";
 import { UnifiSettingsForm } from "@/components/admin/UnifiSettingsForm";
 import { getPrisma } from "@/lib/db";
@@ -80,7 +81,8 @@ export default async function ShopDetailPage({ params }: PageProps) {
     <main className="mx-auto grid max-w-6xl gap-6 px-6 py-8">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-5">
         <div>
-          <p className="text-sm font-semibold text-[var(--accent)]">Shop</p>
+          <BrandWordmark className="app-wordmark" width={104} height={46} priority />
+          <p className="mt-3 text-sm font-semibold text-[var(--accent)]">Shop</p>
           <h1 className="text-3xl font-semibold">{shop.name}</h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
             Device-based free access is useful, but private address rotation can create extra grants.

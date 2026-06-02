@@ -19,6 +19,8 @@ const updateShopSchema = z.object({
   checkoutGraceMinutes: z.number().int().min(1).optional(),
   maxCheckoutGracePerDay: z.number().int().min(0).optional(),
   platformFeeBps: z.number().int().min(0).max(10000).optional(),
+  brandLogoUrl: z.string().url().max(500).nullable().optional(),
+  brandPrimaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
   supportEmail: z.string().email().nullable().optional(),
 });
 

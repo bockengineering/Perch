@@ -1,7 +1,7 @@
 import { Coffee, LockKeyhole, ReceiptText, Ticket } from "lucide-react";
 import { cookies } from "next/headers";
-import Image from "next/image";
 import { redirect } from "next/navigation";
+import { BrandWordmark } from "@/components/BrandWordmark";
 import {
   CAFE_SESSION_COOKIE_NAME,
   safeCafeRedirectPath,
@@ -10,8 +10,6 @@ import {
 import { hostedPreviewCafeCredentials, hostedPreviewDemoEnabled } from "@/lib/auth/hosted-preview";
 
 export const dynamic = "force-dynamic";
-
-const wordmarkHref = "/brand/perch-wordmark-primary.svg";
 
 type PageProps = {
   searchParams?: Promise<{ error?: string; next?: string }>;
@@ -32,7 +30,7 @@ export default async function CafeLoginPage({ searchParams }: PageProps) {
       <section className="cafe-login-shell">
         <div className="cafe-login-copy">
           <div className="brand-lockup">
-            <Image className="brand-lockup-wordmark" src={wordmarkHref} alt="Perch" width={132} height={58} priority />
+            <BrandWordmark className="brand-lockup-wordmark" width={132} height={58} priority />
           </div>
           <p className="eyebrow">Cafe console</p>
           <h1>Sign in to manage Wi-Fi revenue, settings, and staff codes.</h1>
