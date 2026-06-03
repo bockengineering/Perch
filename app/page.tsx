@@ -52,7 +52,7 @@ export default function HomePage() {
           </nav>
           <div className="nav__right">
             <Link href="/cafe/login" className="nav__login">Café login</Link>
-            <a href="#contact" className="btn btn--primary">Book a call</a>
+            <Link href="/cafe/signup" className="btn btn--primary">Create console</Link>
           </div>
         </div>
       </header>
@@ -66,7 +66,7 @@ export default function HomePage() {
               <h1>The first hour&apos;s on you. The <em>afternoon</em> pays rent.</h1>
               <p className="hero__lede lede">Perch turns the guest Wi-Fi you already run into quiet, automatic income. Every guest gets a free hour, every day. Stay longer, and they can pay for it in two taps, without ever flagging down a barista.</p>
               <div className="hero__actions">
-                <a href="#contact" className="btn btn--primary">Book a 15-minute call <ArrowRight /></a>
+                <Link href="/cafe/signup" className="btn btn--primary">Create your cafe console <ArrowRight /></Link>
                 <a href="#how" className="btn btn--ghost">See how it works</a>
               </div>
               <div className="hero__trust">
@@ -327,7 +327,7 @@ export default function HomePage() {
             <h2>Ready to let the long stays <em>pay for themselves?</em></h2>
             <p className="cta__sub">Fifteen minutes is all it takes to see Perch running on your own café&apos;s Wi-Fi. No pressure, no setup fee, no catch.</p>
             <div className="cta__actions">
-              <a href="mailto:hello@perch.coffee" className="btn btn--on-dark">Book a 15-minute call <ArrowRight /></a>
+              <Link href="/cafe/signup" className="btn btn--on-dark">Create cafe console <ArrowRight /></Link>
               <Link href={demoPortalHref} className="btn btn--ghost-dark">See the live demo</Link>
             </div>
           </div>
@@ -353,6 +353,7 @@ export default function HomePage() {
             </div>
             <div className="footer__col">
               <h4>For cafés</h4>
+              <Link href="/cafe/signup">Create console</Link>
               <a href="#contact">Book a call</a>
               <Link href="/cafe/login">Café login</Link>
               <a href="mailto:hello@perch.coffee">Contact us</a>

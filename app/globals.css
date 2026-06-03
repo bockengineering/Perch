@@ -1067,10 +1067,17 @@ pre {
   font-weight: 650;
 }
 
-.form-field input {
+.form-field input,
+.form-field select {
   border: 1px solid var(--border);
   border-radius: 0;
+  background: #fff;
   padding: 0.7rem 0.8rem;
+}
+
+.form-field input[type="color"] {
+  min-height: 2.85rem;
+  padding: 0.25rem;
 }
 
 .login-error {
@@ -1080,6 +1087,113 @@ pre {
   padding: 0.8rem;
   font-size: 0.9rem;
   font-weight: 650;
+}
+
+.login-inline-link {
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.cafe-signup-page {
+  align-items: start;
+}
+
+.cafe-signup-shell {
+  display: grid;
+  width: min(100%, 76rem);
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
+.cafe-signup-copy,
+.cafe-signup-form {
+  padding: clamp(1.25rem, 4vw, 3rem);
+}
+
+.cafe-signup-copy {
+  display: grid;
+  align-content: space-between;
+  gap: 2rem;
+  background: #f0f0ec;
+  border-bottom: 1px solid var(--border);
+}
+
+.cafe-signup-copy h1 {
+  max-width: 42rem;
+  margin: 0;
+  font-size: clamp(2.35rem, 6vw, 5.25rem);
+  line-height: 0.95;
+  font-weight: 740;
+  letter-spacing: 0;
+}
+
+.signup-lede {
+  max-width: 36rem;
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.signup-proof-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.signup-proof-grid div {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.85rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.cafe-signup-form {
+  display: grid;
+  align-content: center;
+  gap: 1rem;
+}
+
+.signup-field-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.signup-defaults {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+  padding: 0.9rem;
+}
+
+.signup-defaults p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.signup-defaults div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.signup-defaults span {
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.primary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 @media (min-width: 768px) {
@@ -1133,6 +1247,19 @@ pre {
   .cafe-login-copy {
     border-right: 1px solid var(--border);
     border-bottom: 0;
+  }
+
+  .cafe-signup-shell {
+    grid-template-columns: minmax(0, 0.95fr) minmax(28rem, 1.05fr);
+  }
+
+  .cafe-signup-copy {
+    border-right: 1px solid var(--border);
+    border-bottom: 0;
+  }
+
+  .signup-field-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   [class~="md:grid-cols-[1fr_120px_120px_90px_auto]"] {

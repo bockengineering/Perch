@@ -1,5 +1,6 @@
 import { Coffee, LockKeyhole, ReceiptText, Ticket } from "lucide-react";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BrandWordmark } from "@/components/BrandWordmark";
 import {
@@ -81,6 +82,9 @@ export default async function CafeLoginPage({ searchParams }: PageProps) {
             {previewDemo
               ? `Preview demo: ${hostedPreviewCafeCredentials.email} / ${hostedPreviewCafeCredentials.password}`
               : "Use the cafe owner or staff account assigned to this cafe."}
+          </p>
+          <p className="login-help">
+            New cafe? <Link className="login-inline-link" href="/cafe/signup">Create a cafe console</Link>.
           </p>
         </form>
       </section>

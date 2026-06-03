@@ -15,9 +15,13 @@ function apiUnauthorized() {
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  const cafeLoginPath = path === "/cafe/login" || path.startsWith("/api/cafe/login");
+  const publicCafeAuthPath =
+    path === "/cafe/login" ||
+    path === "/cafe/signup" ||
+    path.startsWith("/api/cafe/login") ||
+    path.startsWith("/api/cafe/signup");
   const cafeSessionPath =
-    (path.startsWith("/cafe") && !cafeLoginPath) ||
+    (path.startsWith("/cafe") && !publicCafeAuthPath) ||
     path.startsWith("/staff") ||
     path.startsWith("/api/admin/shops") ||
     path.startsWith("/api/staff/shops");

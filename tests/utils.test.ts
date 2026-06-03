@@ -13,6 +13,7 @@ import {
 } from "@/lib/auth/cafe-session";
 import { isDemoCafeLogin } from "@/lib/auth/hosted-preview";
 import { isSupabaseAdminConfigured, isSupabaseAuthConfigured } from "@/lib/auth/supabase";
+import { defaultPricePlanCreateData, slugifyCafeName } from "@/lib/services/cafe-signup";
 
 describe("MAC utilities", () => {
   it("normalizes common MAC address formats", () => {
@@ -149,5 +150,27 @@ describe("deployment environment aliases", () => {
         }
       }
     }
+  });
+});
+
+describe("cafe signup helpers", () => {
+  it("builds safe cafe portal slugs from cafe names", () => {
+    assert.equal(slugifyCafeName("Mockingbird Coffee & Tea"), "mockingbird-coffee-tea");
+    assert.equal(slugifyCafeName("  L'Atelier Café  "), "latelier-caf");
+    assert.equal(slugifyCafeName("admin"), "cafe");
+  });
+
+  it("creates the default paid plans for new cafes", () => {
+    assert.deepEqual(
+      defaultPricePlanCreateData().map((plan) => ({
+        label: plan.label,
+        durationMinutes: plan.durationMinutes,
+        amountCents: plan.amountCents,
+      })),
+      [
+        { label: "2 more hours", durationMinutes: 120, amountCents: 500 },
+        { label: "All day", durationMinutes: 720, amountCents: 800 },
+      ],
+    );
   });
 });
