@@ -4,6 +4,7 @@ import { ErrorScreen } from "@/components/portal/ErrorScreen";
 import { Paywall } from "@/components/portal/Paywall";
 import { getPrisma } from "@/lib/db";
 import { findOrCreateDevice } from "@/lib/services/device";
+import { grantEmergencyFreeAccessIfActive } from "@/lib/services/emergency-free";
 import { grantDailyFreeAccessIfEligible } from "@/lib/services/free-access";
 import { isAllowedSsid, shopCanServePortal } from "@/lib/services/portal-policy";
 import { createPortalSession, parseUniFiPortalParams } from "@/lib/services/portal-session";
@@ -73,7 +74,7 @@ export default async function CaptivePortalPage({ params, searchParams }: PagePr
     userAgent,
   });
 
-  if (!shopCanServePortal(shop) || !isAllowedSsid(shop.unifiIntegration, portalParams.ssid)) {
+  if (shop.status !== "ACTIVE" || !isAllowedSsid(shop.unifiIntegration, portalParams.ssid)) {
     await prisma.portalSession.update({
       where: { id: portalSession.id },
       data: { status: "PAYWALL" },
@@ -83,10 +84,40 @@ export default async function CaptivePortalPage({ params, searchParams }: PagePr
 
   /*
    * Captive portal redirects are not ordinary page views. This GET route may
-   * authorize UniFi access as a side effect so eligible guests never see a
-   * "Start Wi-Fi" interstitial. The shared allowance transaction keeps retries,
-   * refreshes, and worker races idempotent.
+   * authorize UniFi access as a side effect so eligible guests and emergency
+   * override guests never see a "Start Wi-Fi" interstitial. The grant services
+   * keep retries, refreshes, and worker races safe.
    */
+  const emergencyGrant = await grantEmergencyFreeAccessIfActive({
+    shopId: shop.id,
+    deviceId: device.id,
+    source: "PORTAL_FAST_PATH",
+  });
+
+  if (emergencyGrant.status === "AUTHORIZED" || emergencyGrant.status === "ALREADY_AUTHORIZED") {
+    await prisma.portalSession.update({
+      where: { id: portalSession.id },
+      data: { status: "AUTHORIZED" },
+    });
+    redirect(safeRedirectUrl(portalParams.originalUrl));
+  }
+
+  if (emergencyGrant.status === "FAILED") {
+    await prisma.portalSession.update({
+      where: { id: portalSession.id },
+      data: { status: "ERROR" },
+    });
+    return <ErrorScreen retryHref={`/p/${shop.slug}?${new URLSearchParams(portalParams.raw)}`} supportEmail={shop.supportEmail} shop={shop} />;
+  }
+
+  if (!shopCanServePortal(shop)) {
+    await prisma.portalSession.update({
+      where: { id: portalSession.id },
+      data: { status: "PAYWALL" },
+    });
+    return <Paywall shop={shop} portalSessionId={portalSession.id} plans={shop.pricePlans} />;
+  }
+
   const freeGrant = await grantDailyFreeAccessIfEligible({
     shopId: shop.id,
     deviceId: device.id,

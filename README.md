@@ -127,7 +127,7 @@ The cafe panel redirects to a Perch login screen instead of the browser-native B
 demo@perch.local / perch-demo
 ```
 
-The cafe panel includes cafe settings, paid-pass transactions, paid plan setup, and staff code creation.
+The cafe panel includes cafe settings, paid-pass transactions, paid plan setup, staff code creation, and an owner-only emergency switch that makes allowed guest Wi-Fi free until the cafe's local midnight.
 
 ## Supabase Cafe Accounts
 
@@ -208,7 +208,7 @@ Run the silent free access poller:
 npm run worker
 ```
 
-The worker scans active shops every `WORKER_POLL_INTERVAL_SECONDS`, lists guest clients, filters allowed SSIDs, and calls the same daily-free grant service used by the portal fast path. The unique daily allowance constraint keeps portal and worker races from duplicating grants.
+The worker scans active shops every `WORKER_POLL_INTERVAL_SECONDS`, lists guest clients, filters allowed SSIDs, and grants either the active emergency-free override or the normal daily-free allowance. The unique daily allowance constraint keeps portal and worker races from duplicating daily grants.
 
 ## Stripe Notes
 
@@ -252,6 +252,7 @@ The authorize action is `AUTHORIZE_GUEST_ACCESS` with UniFi enforcing the time l
 - `/admin`: platform dashboard.
 - `/admin/shops`: shop list and shop creation.
 - `/admin/shops/{shopId}`: shop reporting, UniFi settings, Stripe connect, price plans.
+- `/cafe/shops/{shopId}`: cafe-owner console with reporting, settings, staff codes, and the emergency free-until-midnight control.
 - `/staff/shops/{shopId}/vouchers`: mobile-friendly voucher creation and recent redemptions.
 
 Admin and staff routes are protected by HTTP Basic Auth through `proxy.ts`.

@@ -1,5 +1,6 @@
 import { ShopStatus } from "@prisma/client";
 import { findOrCreateDevice } from "@/lib/services/device";
+import { grantEmergencyFreeAccessIfActive } from "@/lib/services/emergency-free";
 import { grantDailyFreeAccessIfEligible } from "@/lib/services/free-access";
 import { isAllowedSsid } from "@/lib/services/portal-policy";
 import { getPrisma } from "@/lib/db";
@@ -49,12 +50,21 @@ export async function runSilentFreeAccessTick() {
         ssid: client.ssid,
         apMac: client.apMac,
       });
-      const result = await grantDailyFreeAccessIfEligible({
+      const emergencyResult = await grantEmergencyFreeAccessIfActive({
         shopId: shop.id,
         deviceId: device.id,
         source: "WORKER",
         unifiClientId: client.clientId,
       });
+      const result =
+        emergencyResult.status !== "NOT_ACTIVE" || shop.freeMinutesPerDay <= 0
+          ? emergencyResult
+          : await grantDailyFreeAccessIfEligible({
+              shopId: shop.id,
+              deviceId: device.id,
+              source: "WORKER",
+              unifiClientId: client.clientId,
+            });
 
       if (result.status === "AUTHORIZED" || result.status === "ALREADY_AUTHORIZED") {
         granted += 1;

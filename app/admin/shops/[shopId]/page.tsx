@@ -46,7 +46,7 @@ export default async function ShopDetailPage({ params }: PageProps) {
         where: {
           shopId: shop.id,
           createdAt: { gte: today },
-          type: { in: ["FREE_AUTO_WORKER", "FREE_PORTAL_FAST_PATH"] },
+          type: { in: ["FREE_AUTO_WORKER", "FREE_PORTAL_FAST_PATH", "EMERGENCY_FREE"] },
         },
       }),
       prisma.order.count({ where: { shopId: shop.id, paidAt: { gte: today } } }),
@@ -68,7 +68,7 @@ export default async function ShopDetailPage({ params }: PageProps) {
         where: {
           shopId: shop.id,
           createdAt: { gte: thirtyDaysAgo },
-          type: { in: ["FREE_AUTO_WORKER", "FREE_PORTAL_FAST_PATH"] },
+          type: { in: ["FREE_AUTO_WORKER", "FREE_PORTAL_FAST_PATH", "EMERGENCY_FREE"] },
         },
       }),
     ]);

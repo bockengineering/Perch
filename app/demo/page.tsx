@@ -53,7 +53,7 @@ export default async function DemoPage() {
       const [portalVisits, freeGrants, paidGrants, voucherGrants, failedGrants, orders] = await Promise.all([
         prisma.portalSession.count({ where: { shopId: shop.id } }),
         prisma.accessGrant.count({
-          where: { shopId: shop.id, type: { in: ["FREE_AUTO_WORKER", "FREE_PORTAL_FAST_PATH"] } },
+          where: { shopId: shop.id, type: { in: ["FREE_AUTO_WORKER", "FREE_PORTAL_FAST_PATH", "EMERGENCY_FREE"] } },
         }),
         prisma.accessGrant.count({ where: { shopId: shop.id, type: "PAID" } }),
         prisma.accessGrant.count({ where: { shopId: shop.id, type: "VOUCHER" } }),

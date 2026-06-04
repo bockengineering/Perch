@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { BrandWordmark } from "@/components/BrandWordmark";
 import { CafeSettingsForm } from "@/components/cafe/CafeSettingsForm";
+import { EmergencyFreeAccessControl } from "@/components/cafe/EmergencyFreeAccessControl";
 import { CafeMembersPanel } from "@/components/cafe/CafeMembersPanel";
 import { PricePlanForm } from "@/components/admin/PricePlanForm";
 import { UnifiSettingsForm } from "@/components/admin/UnifiSettingsForm";
@@ -48,6 +49,15 @@ function MetricCard({ label, value, detail }: { label: string; value: string | n
 
 function money(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;
+}
+
+function formatTimeInZone(date: Date, timezone: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(date);
 }
 
 function statusTone(status: string | boolean | null | undefined) {
@@ -306,7 +316,7 @@ export default async function CafeShopPage({ params }: PageProps) {
       where: {
         shopId: shop.id,
         createdAt: { gte: today },
-        type: { in: ["FREE_AUTO_WORKER", "FREE_PORTAL_FAST_PATH"] },
+        type: { in: ["FREE_AUTO_WORKER", "FREE_PORTAL_FAST_PATH", "EMERGENCY_FREE"] },
       },
     }),
     prisma.accessGrant.count({
@@ -337,7 +347,7 @@ export default async function CafeShopPage({ params }: PageProps) {
       where: {
         shopId: shop.id,
         createdAt: { gte: thirtyDaysAgo },
-        type: { in: ["FREE_AUTO_WORKER", "FREE_PORTAL_FAST_PATH"] },
+        type: { in: ["FREE_AUTO_WORKER", "FREE_PORTAL_FAST_PATH", "EMERGENCY_FREE"] },
       },
     }),
     prisma.order.findMany({
@@ -403,6 +413,7 @@ export default async function CafeShopPage({ params }: PageProps) {
   const staffCount = members.filter((member) => member.role === "STAFF").length;
   const stripeStatus = shop.stripeChargesEnabled && shop.stripePayoutsEnabled ? "CONNECTED" : "INCOMPLETE";
   const unifiStatus = shop.unifiIntegration?.connectionStatus ?? "UNTESTED";
+  const emergencyFreeActive = Boolean(shop.emergencyFreeUntil && shop.emergencyFreeUntil > now);
   const setupItems = [
     { label: "Cafe is active", complete: shop.status === "ACTIVE", detail: shop.status },
     { label: "UniFi connected", complete: unifiStatus === "CONNECTED", detail: unifiStatus },
@@ -423,6 +434,7 @@ export default async function CafeShopPage({ params }: PageProps) {
             <StatusPill status={shop.status}>{shop.status}</StatusPill>
             <StatusPill status={unifiStatus}>{`UniFi ${unifiStatus}`}</StatusPill>
             <StatusPill status={stripeStatus}>{`Stripe ${stripeStatus}`}</StatusPill>
+            {emergencyFreeActive ? <StatusPill status="ACTIVE">Free until midnight</StatusPill> : null}
             <StatusPill status={isOwner ? "ACTIVE" : "PAUSED"}>{isOwner ? "Owner" : "Staff"}</StatusPill>
           </div>
         </div>
@@ -454,6 +466,11 @@ export default async function CafeShopPage({ params }: PageProps) {
         <MetricCard label="Devices seen today" value={devicesSeenToday} detail="Hashed device identity" />
         {isOwner ? (
           <>
+            <MetricCard
+              label="Emergency free"
+              value={emergencyFreeActive ? "On" : "Off"}
+              detail={emergencyFreeActive && shop.emergencyFreeUntil ? `Until ${formatTimeInZone(shop.emergencyFreeUntil, shop.timezone)}` : "Owner-controlled override"}
+            />
             <MetricCard label="Paid passes today" value={paidToday} detail={`${transactions.length} recent orders loaded`} />
             <MetricCard label="Gross today" value={money(grossToday)} detail={`${money(thirtyDayGross)} in 30 days`} />
             <MetricCard label="Cafe share today" value={money(cafeShareToday)} detail={`${money(thirtyDayShare)} in 30 days`} />
@@ -465,20 +482,35 @@ export default async function CafeShopPage({ params }: PageProps) {
       </section>
 
       {isOwner ? (
-        <section className="surface grid gap-4 p-4">
-          <SectionTitle icon={ShieldCheck} title="Launch checklist" detail="The items a cafe owner should verify before sending real guests through Perch." />
-          <div className="grid gap-3 md:grid-cols-3">
-            {setupItems.map((item) => (
-              <div key={item.label} className="rounded-md border border-[var(--border)] p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="font-semibold">{item.label}</p>
-                  <StatusPill status={item.complete}>{item.complete ? "Ready" : "Needs setup"}</StatusPill>
+        <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
+          <section className="surface grid gap-4 p-4">
+            <SectionTitle icon={ShieldCheck} title="Launch checklist" detail="The items a cafe owner should verify before sending real guests through Perch." />
+            <div className="grid gap-3 md:grid-cols-2">
+              {setupItems.map((item) => (
+                <div key={item.label} className="rounded-md border border-[var(--border)] p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-semibold">{item.label}</p>
+                    <StatusPill status={item.complete}>{item.complete ? "Ready" : "Needs setup"}</StatusPill>
+                  </div>
+                  <p className="mt-2 text-sm text-[var(--muted)]">{item.detail}</p>
                 </div>
-                <p className="mt-2 text-sm text-[var(--muted)]">{item.detail}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+
+          <section className="surface grid gap-4 p-4">
+            <SectionTitle
+              icon={AlertTriangle}
+              title="Emergency free access"
+              detail="If payments or guest support break, make every allowed guest free until this cafe's local midnight."
+            />
+            <EmergencyFreeAccessControl
+              shopId={shop.id}
+              emergencyFreeUntil={shop.emergencyFreeUntil?.toISOString() ?? null}
+              timezone={shop.timezone}
+            />
+          </section>
+        </div>
       ) : (
         <section className="surface p-4">
           <SectionTitle

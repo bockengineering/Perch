@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { normalizeMac, hashMac } from "@/lib/crypto/mac";
 import { safeRedirectUrl } from "@/lib/utils/redirect";
-import { getShopLocalDate } from "@/lib/utils/time";
+import { getNextLocalMidnight, getShopLocalDate } from "@/lib/utils/time";
 import { hashVoucherCode, normalizeVoucherCode } from "@/lib/services/vouchers";
+import { emergencyFreeMinutesRemaining, isEmergencyFreeActive } from "@/lib/services/emergency-free";
 import { applyDatabaseUrlAlias, databaseUrl } from "@/lib/env";
 import {
   createCafeSessionCookie,
@@ -44,6 +45,25 @@ describe("local day policy", () => {
     const shop = { timezone: "America/Los_Angeles", freeResetHour: 6 };
     assert.equal(getShopLocalDate(shop, new Date("2026-05-12T12:00:00.000Z")), "2026-05-11");
     assert.equal(getShopLocalDate(shop, new Date("2026-05-12T14:00:00.000Z")), "2026-05-12");
+  });
+
+  it("finds the next cafe-local midnight for emergency free access", () => {
+    assert.equal(
+      getNextLocalMidnight("America/Los_Angeles", new Date("2026-05-12T20:00:00.000Z")).toISOString(),
+      "2026-05-13T07:00:00.000Z",
+    );
+    assert.equal(
+      getNextLocalMidnight("America/Los_Angeles", new Date("2026-01-12T20:00:00.000Z")).toISOString(),
+      "2026-01-13T08:00:00.000Z",
+    );
+  });
+
+  it("treats emergency free access as active only before its cutoff", () => {
+    const shop = { emergencyFreeUntil: new Date("2026-05-13T07:00:00.000Z") };
+    const now = new Date("2026-05-13T06:15:00.000Z");
+    assert.equal(isEmergencyFreeActive(shop, now), true);
+    assert.equal(emergencyFreeMinutesRemaining(shop, now), 45);
+    assert.equal(isEmergencyFreeActive(shop, new Date("2026-05-13T07:00:00.000Z")), false);
   });
 });
 

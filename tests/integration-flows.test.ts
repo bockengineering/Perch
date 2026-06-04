@@ -11,12 +11,17 @@ class InMemoryPerchFlow {
   webhookEvents = new Set<string>();
   networkLogs: Array<{ status: "SUCCESS" | "FAILED"; error?: string }> = [];
   authorizeSucceeds = true;
+  emergencyFreeUntil: Date | null = null;
 
   private allowanceKey(deviceId: string, now: Date) {
     return `${deviceId}:${getShopLocalDate({ timezone: "America/Los_Angeles", freeResetHour: 0 }, now)}`;
   }
 
   portalVisit(deviceId: string, now: Date) {
+    if (this.emergencyFreeUntil && this.emergencyFreeUntil > now) {
+      return this.authorize("FREE", `emergency:${deviceId}`);
+    }
+
     const key = this.allowanceKey(deviceId, now);
     if (this.allowances.has(key)) {
       return "PAYWALL";
@@ -103,6 +108,17 @@ describe("mock captive portal flows", () => {
     flow.workerTick([{ deviceId: "device-1", guest: true, authorized: false }], now);
     assert.equal(flow.allowances.size, 1);
     assert.equal(flow.grants.filter((grant) => grant.type === "FREE").length, 1);
+  });
+
+  it("emergency free access bypasses the paywall only until midnight", () => {
+    const flow = new InMemoryPerchFlow();
+    flow.emergencyFreeUntil = new Date("2026-05-13T07:00:00.000Z");
+    assert.equal(flow.portalVisit("device-1", new Date("2026-05-12T20:00:00.000Z")), "AUTHORIZED");
+    assert.equal(flow.portalVisit("device-1", new Date("2026-05-12T21:00:00.000Z")), "AUTHORIZED");
+    assert.equal(flow.allowances.size, 0);
+
+    assert.equal(flow.portalVisit("device-1", new Date("2026-05-13T07:00:00.000Z")), "AUTHORIZED");
+    assert.equal(flow.portalVisit("device-1", new Date("2026-05-13T08:00:00.000Z")), "PAYWALL");
   });
 });
 
