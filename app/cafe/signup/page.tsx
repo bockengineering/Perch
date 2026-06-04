@@ -1,4 +1,4 @@
-import { BarChart3, CreditCard, Settings2, Wifi } from "lucide-react";
+import { ListChecks, LockKeyhole, UserPlus, Wifi } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { BrandWordmark } from "@/components/BrandWordmark";
@@ -24,29 +24,29 @@ export default async function CafeSignupPage() {
             <BrandWordmark className="brand-lockup-wordmark" width={132} height={58} priority />
           </div>
           <div>
-            <p className="eyebrow">Cafe onboarding</p>
-            <h1>Open the console your cafe will run on.</h1>
+            <p className="eyebrow">Cafe owner signup</p>
+            <h1>Create your Perch account.</h1>
             <p className="signup-lede">
-              Create the cafe workspace, confirm your default Wi-Fi policy, then finish Stripe and UniFi setup from
-              the launch checklist.
+              Sign up first. Then Perch will walk you through creating the cafe console, setting the default Wi-Fi
+              policy, and preparing Stripe and UniFi before launch.
             </p>
           </div>
           <div className="signup-proof-grid">
             <div>
-              <BarChart3 size={18} />
-              <span>Revenue, paid passes, and failed authorization reporting.</span>
+              <UserPlus size={18} />
+              <span>Create an owner account for the cafe.</span>
             </div>
             <div>
-              <Settings2 size={18} />
-              <span>Free access policy, portal branding, price plans, and staff accounts.</span>
-            </div>
-            <div>
-              <CreditCard size={18} />
-              <span>Stripe Connect onboarding for direct cafe charges.</span>
+              <ListChecks size={18} />
+              <span>Start with a guided console setup screen.</span>
             </div>
             <div>
               <Wifi size={18} />
-              <span>UniFi settings and allowed guest SSIDs before launch.</span>
+              <span>Connect UniFi only when you are ready to test hardware.</span>
+            </div>
+            <div>
+              <LockKeyhole size={18} />
+              <span>The cafe console stays private until you sign in.</span>
             </div>
           </div>
         </div>

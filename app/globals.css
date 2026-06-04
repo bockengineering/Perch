@@ -1196,6 +1196,100 @@ pre {
   opacity: 0.65;
 }
 
+.cafe-onboarding-page {
+  min-height: 100vh;
+  background: #f7f7f4;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.cafe-onboarding-shell {
+  display: grid;
+  width: min(100%, 78rem);
+  margin: 0 auto;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
+.cafe-onboarding-copy,
+.cafe-onboarding-panel {
+  padding: clamp(1.25rem, 4vw, 3rem);
+}
+
+.cafe-onboarding-copy {
+  display: grid;
+  align-content: start;
+  gap: 2rem;
+  background: #f0f0ec;
+  border-bottom: 1px solid var(--border);
+}
+
+.cafe-onboarding-copy h1 {
+  max-width: 42rem;
+  margin: 0;
+  font-size: clamp(2.35rem, 6vw, 5.25rem);
+  line-height: 0.95;
+  font-weight: 740;
+  letter-spacing: 0;
+}
+
+.cafe-onboarding-panel {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+}
+
+.onboarding-step-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.onboarding-step-list > div {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.85rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.9rem;
+}
+
+.onboarding-step-list h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.onboarding-step-list p {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.onboarding-step-number {
+  display: inline-grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--foreground);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.onboarding-capability-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.onboarding-capability-grid div {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 @media (min-width: 768px) {
   .sales-nav {
     grid-template-columns: 1fr auto auto;
@@ -1256,6 +1350,19 @@ pre {
   .cafe-signup-copy {
     border-right: 1px solid var(--border);
     border-bottom: 0;
+  }
+
+  .cafe-onboarding-shell {
+    grid-template-columns: minmax(0, 0.95fr) minmax(28rem, 1.05fr);
+  }
+
+  .cafe-onboarding-copy {
+    border-right: 1px solid var(--border);
+    border-bottom: 0;
+  }
+
+  .onboarding-capability-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .signup-field-grid {

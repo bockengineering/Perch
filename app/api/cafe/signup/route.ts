@@ -8,31 +8,15 @@ import {
 import { createSupabaseCafeUser, isSupabaseAdminConfigured } from "@/lib/auth/supabase";
 import { getPrisma } from "@/lib/db";
 import { logAudit } from "@/lib/services/audit";
-import { createCafeSignup, slugifyCafeName } from "@/lib/services/cafe-signup";
+import { createCafeSignupAccount } from "@/lib/services/cafe-signup";
 import { checkRateLimit } from "@/lib/utils/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 const signupSchema = z.object({
-  cafeName: z.string().trim().min(2).max(120),
   ownerName: z.string().trim().min(2).max(120),
   ownerEmail: z.string().trim().email().max(180),
   password: z.string().min(8).max(128),
-  timezone: z.string().trim().min(3).max(80).default("America/Los_Angeles"),
-  supportEmail: z.string().trim().email().max(180).optional().or(z.literal("")),
-  brandPrimaryColor: z
-    .string()
-    .regex(/^#[0-9a-fA-F]{6}$/)
-    .optional()
-    .or(z.literal("")),
-  preferredSlug: z
-    .string()
-    .trim()
-    .min(2)
-    .max(60)
-    .regex(/^[a-z0-9-]+$/)
-    .optional()
-    .or(z.literal("")),
 });
 
 function clientIp(request: NextRequest) {
@@ -51,7 +35,7 @@ export async function POST(request: NextRequest) {
 
   const parsed = signupSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
-    return NextResponse.json({ error: "Enter valid cafe and owner details." }, { status: 400 });
+    return NextResponse.json({ error: "Enter valid account details." }, { status: 400 });
   }
 
   const data = parsed.data;
@@ -70,38 +54,32 @@ export async function POST(request: NextRequest) {
 
     const prisma = getPrisma();
     const result = await prisma.$transaction((tx) =>
-      createCafeSignup(tx, {
-        cafeName: data.cafeName,
+      createCafeSignupAccount(tx, {
         ownerName: data.ownerName,
         ownerEmail: normalizedEmail,
-        timezone: data.timezone,
-        supportEmail: data.supportEmail || normalizedEmail,
-        brandPrimaryColor: data.brandPrimaryColor || "#35684e",
-        preferredSlug: data.preferredSlug || slugifyCafeName(data.cafeName),
         supabaseUserId,
       }),
     );
 
     await logAudit({
-      shopId: result.shop.id,
       action: "cafe.signup",
-      entityType: "Shop",
-      entityId: result.shop.id,
+      entityType: "User",
+      entityId: result.id,
       metadata: { supabaseLinked: Boolean(supabaseUserId) },
     });
 
     const response = NextResponse.json({
-      shopId: result.shop.id,
-      redirectTo: `/cafe/shops/${result.shop.id}`,
+      userId: result.id,
+      redirectTo: "/cafe/onboarding",
       supabaseLinked: Boolean(supabaseUserId),
     });
     response.cookies.set({
       name: CAFE_SESSION_COOKIE_NAME,
       value: await createCafeSessionCookie({
-        email: result.user.email,
-        userId: result.user.id,
+        email: result.email,
+        userId: result.id,
         role: "SHOP_OWNER",
-        shopIds: [result.shop.id],
+        shopIds: [],
       }),
       httpOnly: true,
       sameSite: "lax",

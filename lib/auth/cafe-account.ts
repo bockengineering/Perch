@@ -22,7 +22,13 @@ function toCafeAccount(user: UserWithMemberships): CafeAccount | null {
     (membership) => membership.role === ShopRole.SHOP_OWNER || membership.role === ShopRole.STAFF,
   );
   if (shopMemberships.length === 0) {
-    return null;
+    return {
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      role: "SHOP_OWNER",
+      shopIds: [],
+    };
   }
 
   const ownsShop = shopMemberships.some((membership) => membership.role === ShopRole.SHOP_OWNER);

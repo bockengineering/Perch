@@ -29,6 +29,10 @@ export default async function CafeHomePage() {
     redirect(`/cafe/shops/${shops[0].id}`);
   }
 
+  if (shops.length === 0 && session.role === "SHOP_OWNER") {
+    redirect("/cafe/onboarding");
+  }
+
   return (
     <main className="mx-auto grid max-w-3xl gap-6 px-5 py-10">
       <section className="surface p-6">

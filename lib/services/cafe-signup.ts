@@ -3,15 +3,20 @@ import { Prisma, ShopRole, type ShopStatus } from "@prisma/client";
 const reservedSlugs = new Set(["admin", "api", "cafe", "demo", "p", "staff"]);
 
 export type CafeSignupInput = {
-  cafeName: string;
   ownerName: string;
+  ownerEmail: string;
+  supabaseUserId?: string | null;
+};
+
+export type CafeConsoleInput = {
+  cafeName: string;
+  ownerUserId: string;
   ownerEmail: string;
   timezone: string;
   supportEmail?: string | null;
   brandPrimaryColor?: string | null;
   preferredSlug?: string | null;
   status?: ShopStatus;
-  supabaseUserId?: string | null;
 };
 
 export function slugifyCafeName(value: string) {
@@ -68,12 +73,42 @@ export async function buildUniqueShopSlug(
   return candidate;
 }
 
-export async function createCafeSignup(
+export async function createCafeSignupAccount(
   prisma: Prisma.TransactionClient,
   input: CafeSignupInput,
 ) {
   const normalizedEmail = input.ownerEmail.trim().toLowerCase();
+  return prisma.user.upsert({
+    where: { email: normalizedEmail },
+    update: {
+      name: input.ownerName.trim(),
+      supabaseUserId: input.supabaseUserId ?? undefined,
+    },
+    create: {
+      email: normalizedEmail,
+      name: input.ownerName.trim(),
+      supabaseUserId: input.supabaseUserId ?? undefined,
+    },
+  });
+}
+
+export async function createCafeConsoleForOwner(
+  prisma: Prisma.TransactionClient,
+  input: CafeConsoleInput,
+) {
+  const normalizedEmail = input.ownerEmail.trim().toLowerCase();
   const slug = await buildUniqueShopSlug(prisma, input.preferredSlug || input.cafeName);
+
+  const owner = await prisma.user.findFirst({
+    where: {
+      OR: [{ id: input.ownerUserId }, { email: normalizedEmail }],
+    },
+    select: { id: true, email: true, name: true },
+  });
+
+  if (!owner) {
+    throw new Error("Cafe owner account was not found.");
+  }
 
   const shop = await prisma.shop.create({
     data: {
@@ -89,33 +124,20 @@ export async function createCafeSignup(
     },
   });
 
-  const user = await prisma.user.upsert({
-    where: { email: normalizedEmail },
-    update: {
-      name: input.ownerName.trim(),
-      supabaseUserId: input.supabaseUserId ?? undefined,
-    },
-    create: {
-      email: normalizedEmail,
-      name: input.ownerName.trim(),
-      supabaseUserId: input.supabaseUserId ?? undefined,
-    },
-  });
-
   await prisma.shopMember.upsert({
     where: {
       shopId_userId: {
         shopId: shop.id,
-        userId: user.id,
+        userId: owner.id,
       },
     },
     update: { role: ShopRole.SHOP_OWNER },
     create: {
       shopId: shop.id,
-      userId: user.id,
+      userId: owner.id,
       role: ShopRole.SHOP_OWNER,
     },
   });
 
-  return { shop, user };
+  return { shop, user: owner };
 }

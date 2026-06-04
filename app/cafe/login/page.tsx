@@ -57,7 +57,7 @@ export default async function CafeLoginPage({ searchParams }: PageProps) {
             <LockKeyhole size={20} />
             <div>
               <h2>Cafe login</h2>
-              <p>Use the credentials assigned to this cafe.</p>
+              <p>Use your Perch cafe owner or staff account.</p>
             </div>
           </div>
 
@@ -81,10 +81,10 @@ export default async function CafeLoginPage({ searchParams }: PageProps) {
           <p className="login-help">
             {previewDemo
               ? `Preview demo: ${hostedPreviewCafeCredentials.email} / ${hostedPreviewCafeCredentials.password}`
-              : "Use the cafe owner or staff account assigned to this cafe."}
+              : "New owners continue to the setup walkthrough after login."}
           </p>
           <p className="login-help">
-            New cafe? <Link className="login-inline-link" href="/cafe/signup">Create a cafe console</Link>.
+            New cafe? <Link className="login-inline-link" href="/cafe/signup">Sign up</Link>.
           </p>
         </form>
       </section>
