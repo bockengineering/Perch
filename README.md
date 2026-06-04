@@ -216,9 +216,13 @@ Perch uses Stripe Checkout with Connect direct charges:
 
 - Checkout Sessions are created on the connected account.
 - `application_fee_amount` captures Perch revenue share.
+- New cafe connected accounts are created with the cafe account as the Stripe fee payer for direct charges.
+- Stripe processing fees come out of the cafe's connected-account balance; Perch's application fee is additional.
 - `checkout.session.completed` is the source of truth.
 - `WebhookEvent` stores Stripe event IDs idempotently.
 - A 5-minute `CHECKOUT_GRACE` grant is attempted before redirecting to Stripe.
+
+Stripe only lets the fee payer be set when the connected account is created. If a cafe was connected before this policy, create a fresh connected account before launch or verify the account's fee-payer behavior in Stripe.
 
 Configure the Connect webhook endpoint:
 

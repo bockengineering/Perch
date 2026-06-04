@@ -20,6 +20,18 @@ function asJson(value: unknown) {
   return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }
 
+export function stripeConnectedAccountController(): NonNullable<Stripe.AccountCreateParams["controller"]> {
+  return {
+    // Cafes are the merchant for direct charges, so their connected account pays
+    // Stripe processing fees. Perch still collects its revenue share through
+    // payment_intent_data.application_fee_amount on each Checkout Session.
+    fees: { payer: "account" },
+    losses: { payments: "stripe" },
+    requirement_collection: "stripe",
+    stripe_dashboard: { type: "express" },
+  };
+}
+
 export async function createCheckoutGraceGrant(input: {
   shop: Shop;
   deviceId: string;
@@ -351,12 +363,7 @@ export async function startStripeConnectOnboarding(
         card_payments: { requested: true },
         transfers: { requested: true },
       },
-      controller: {
-        fees: { payer: "application" },
-        losses: { payments: "stripe" },
-        requirement_collection: "stripe",
-        stripe_dashboard: { type: "express" },
-      },
+      controller: stripeConnectedAccountController(),
     } as Stripe.AccountCreateParams);
     accountId = account.id;
     await prisma.shop.update({

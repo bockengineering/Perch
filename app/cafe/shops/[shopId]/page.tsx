@@ -596,7 +596,7 @@ export default async function CafeShopPage({ params }: PageProps) {
             </div>
 
             <div className="surface grid gap-4 p-4">
-              <SectionTitle icon={CreditCard} title="Stripe payments" detail="The cafe receives direct charges. Perch collects the configured application fee." />
+              <SectionTitle icon={CreditCard} title="Stripe payments" detail="The cafe receives direct charges, pays Stripe processing fees, and Perch collects the configured application fee." />
               <div className="grid gap-3 text-sm">
                 <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
                   <span className="text-[var(--muted)]">Connected account</span>

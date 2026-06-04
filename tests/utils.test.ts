@@ -5,6 +5,7 @@ import { safeRedirectUrl } from "@/lib/utils/redirect";
 import { getNextLocalMidnight, getShopLocalDate } from "@/lib/utils/time";
 import { hashVoucherCode, normalizeVoucherCode } from "@/lib/services/vouchers";
 import { emergencyFreeMinutesRemaining, isEmergencyFreeActive } from "@/lib/services/emergency-free";
+import { stripeConnectedAccountController } from "@/lib/services/payments";
 import { applyDatabaseUrlAlias, databaseUrl } from "@/lib/env";
 import {
   createCafeSessionCookie,
@@ -192,5 +193,14 @@ describe("cafe signup helpers", () => {
         { label: "All day", durationMinutes: 720, amountCents: 800 },
       ],
     );
+  });
+});
+
+describe("Stripe Connect settings", () => {
+  it("creates cafe connected accounts with cafe-paid direct charge processing fees", () => {
+    const controller = stripeConnectedAccountController();
+    assert.equal(controller.fees?.payer, "account");
+    assert.equal(controller.losses?.payments, "stripe");
+    assert.equal(controller.stripe_dashboard?.type, "express");
   });
 });
