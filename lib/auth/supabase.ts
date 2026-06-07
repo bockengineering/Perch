@@ -100,10 +100,11 @@ export async function signInWithSupabasePassword(
   return { ok: true, user: payload.user, accessToken: payload.access_token };
 }
 
-export async function createSupabaseCafeUser(input: {
+export async function createSupabaseAuthUser(input: {
   email: string;
   password?: string;
   name?: string | null;
+  appMetadata?: Record<string, unknown>;
 }) {
   const url = supabaseUrl();
   const key = supabaseSecretKey();
@@ -122,7 +123,7 @@ export async function createSupabaseCafeUser(input: {
       email: input.email,
       password: input.password,
       email_confirm: true,
-      app_metadata: { perch_account: true },
+      app_metadata: { perch_account: true, ...(input.appMetadata ?? {}) },
       user_metadata: input.name ? { name: input.name } : undefined,
     }),
     cache: "no-store",
@@ -134,4 +135,15 @@ export async function createSupabaseCafeUser(input: {
   }
 
   return payload;
+}
+
+export async function createSupabaseCafeUser(input: {
+  email: string;
+  password?: string;
+  name?: string | null;
+}) {
+  return createSupabaseAuthUser({
+    ...input,
+    appMetadata: { perch_role: "cafe" },
+  });
 }

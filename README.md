@@ -23,6 +23,8 @@ Copy `.env.example` to `.env` and replace every placeholder:
 - `APP_URL`: public app URL, for example `http://localhost:3000`.
 - `NEXTAUTH_SECRET`: auth/session secret placeholder for future auth expansion.
 - `ADMIN_BASIC_USERNAME` / `ADMIN_BASIC_PASSWORD`: basic admin/staff gate.
+- `PLATFORM_ADMIN_EMAIL` / `PLATFORM_ADMIN_PASSWORD`: optional production bootstrap login for the platform admin UI. In local/demo mode Perch falls back to `ADMIN_BASIC_USERNAME` / `ADMIN_BASIC_PASSWORD`.
+- `PLATFORM_SESSION_SECRET`: secret used to sign platform admin session cookies.
 - `CAFE_LOGIN_EMAIL` / `CAFE_LOGIN_PASSWORD`: cafe owner login for the cafe console.
 - `CAFE_SESSION_SECRET`: secret used to sign cafe console session cookies.
 - `SUPABASE_URL`: Supabase project URL for cafe-owner Auth.
@@ -99,7 +101,7 @@ Open:
 http://localhost:3000/demo
 ```
 
-Demo admin credentials:
+Demo platform admin and cafe-owner credentials:
 
 ```text
 demo@perch.local / perch-demo
@@ -128,6 +130,20 @@ demo@perch.local / perch-demo
 ```
 
 The cafe panel includes cafe settings, paid-pass transactions, paid plan setup, staff code creation, and an owner-only emergency switch that makes allowed guest Wi-Fi free until the cafe's local midnight.
+
+Platform admin:
+
+```text
+http://localhost:3000/admin
+```
+
+The platform admin panel redirects to `/admin/login`. In demo mode, sign in with:
+
+```text
+demo@perch.local / perch-demo
+```
+
+The platform panel includes global shop health, revenue, failed network actions, platform-admin account creation, shop settings, Stripe/UniFi configuration, price plans, cafe accounts, vouchers, and the same emergency free-until-midnight switch.
 
 ## Supabase Cafe Accounts
 
@@ -170,6 +186,27 @@ Example body:
 ```
 
 If `SUPABASE_SECRET_KEY` is configured, this creates a Supabase Auth user and links the returned Supabase user ID to Perch. If the Supabase user already exists, create or invite them in Supabase, then create the local `User`/`ShopMember` entry with `createSupabaseUser: false`.
+
+## Supabase Platform Admins
+
+Perch can also use Supabase Auth for platform admins. Set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, and `PLATFORM_SESSION_SECRET`, then create platform admins from `/admin` or:
+
+```text
+POST /api/admin/platform-users
+```
+
+Example body:
+
+```json
+{
+  "email": "admin@example.com",
+  "name": "Perch Admin",
+  "password": "temporary-password",
+  "createSupabaseUser": true
+}
+```
+
+The login form validates credentials with Supabase Auth, then checks Perch's `User` and `PlatformUser` tables for `PLATFORM_ADMIN`. Supabase metadata is not trusted for authorization.
 
 Paid-pass testing in demo mode:
 
@@ -253,13 +290,14 @@ The authorize action is `AUTHORIZE_GUEST_ACCESS` with UniFi enforcing the time l
 
 ## Admin And Staff
 
-- `/admin`: platform dashboard.
+- `/admin/login`: platform admin login.
+- `/admin`: platform dashboard with shop health, revenue, active grants, failed network actions, recent orders, and platform-admin account creation.
 - `/admin/shops`: shop list and shop creation.
-- `/admin/shops/{shopId}`: shop reporting, UniFi settings, Stripe connect, price plans.
+- `/admin/shops/{shopId}`: shop reporting, settings, emergency free access, cafe accounts, UniFi settings, Stripe connect, price plans, vouchers, and recent activity.
 - `/cafe/shops/{shopId}`: cafe-owner console with reporting, settings, staff codes, and the emergency free-until-midnight control.
 - `/staff/shops/{shopId}/vouchers`: mobile-friendly voucher creation and recent redemptions.
 
-Admin and staff routes are protected by HTTP Basic Auth through `proxy.ts`.
+Platform admin routes use signed `perch_platform_session` cookies. Cafe/staff routes use signed `perch_cafe_session` cookies. HTTP Basic Auth remains as a technical fallback for protected admin and staff APIs.
 
 ## Deployment Notes
 

@@ -5,6 +5,10 @@ import {
   cafeSessionCanAccessShop,
   getCafeSessionFromRequest,
 } from "@/lib/auth/cafe-authorization";
+import {
+  getPlatformSessionFromRequest,
+  platformActorFromSession,
+} from "@/lib/auth/platform-authorization";
 import { logAudit } from "@/lib/services/audit";
 import {
   activateEmergencyFreeUntilMidnight,
@@ -24,12 +28,13 @@ type RouteContext = {
 export async function POST(request: Request, context: RouteContext) {
   const { shopId } = await context.params;
   const session = await getCafeSessionFromRequest(request);
+  const platformSession = await getPlatformSessionFromRequest(request);
 
-  if (!session) {
+  if (!session && !platformSession) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
 
-  if (!cafeSessionCanAccessShop(session, shopId, true)) {
+  if (session && !cafeSessionCanAccessShop(session, shopId, true)) {
     return NextResponse.json({ error: "Cafe owner access required." }, { status: 403 });
   }
 
@@ -47,7 +52,7 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   await logAudit({
-    actor: cafeActorFromSession(session),
+    actor: platformSession ? platformActorFromSession(platformSession) : cafeActorFromSession(session!),
     shopId: shop.id,
     action: parsed.data.enabled ? "shop.emergency_free.enable" : "shop.emergency_free.disable",
     entityType: "Shop",

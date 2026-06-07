@@ -13,6 +13,12 @@ import {
   safeCafeRedirectPath,
   verifyCafeSessionCookie,
 } from "@/lib/auth/cafe-session";
+import {
+  createPlatformSessionCookie,
+  isPlatformFallbackLoginValid,
+  safeAdminRedirectPath,
+  verifyPlatformSessionCookie,
+} from "@/lib/auth/platform-session";
 import { isDemoCafeLogin } from "@/lib/auth/hosted-preview";
 import { isSupabaseAdminConfigured, isSupabaseAuthConfigured } from "@/lib/auth/supabase";
 import { defaultPricePlanCreateData, slugifyCafeName } from "@/lib/services/cafe-signup";
@@ -116,6 +122,54 @@ describe("cafe login session", () => {
   it("recognizes the seeded live demo cafe login", () => {
     assert.equal(isDemoCafeLogin("PERCH.DEMO.OWNER@gmail.com", "Perch-demo-2026!"), true);
     assert.equal(isDemoCafeLogin("perch.demo.owner@gmail.com", "wrong"), false);
+  });
+});
+
+describe("platform admin session", () => {
+  it("creates and verifies a signed platform admin session cookie", async () => {
+    process.env.PLATFORM_SESSION_SECRET = "test-platform-session-secret";
+    const now = new Date("2026-05-30T12:00:00.000Z");
+    const cookie = await createPlatformSessionCookie({ email: "ADMIN@perch.local", userId: "user_123" }, now);
+    const session = await verifyPlatformSessionCookie(cookie, now);
+    assert.equal(session?.email, "admin@perch.local");
+    assert.equal(session?.role, "PLATFORM_ADMIN");
+    assert.equal(session?.userId, "user_123");
+    assert.equal(await verifyPlatformSessionCookie(`${cookie}tampered`, now), null);
+  });
+
+  it("only allows internal admin redirect destinations", () => {
+    assert.equal(safeAdminRedirectPath("/admin/shops/shop_123"), "/admin/shops/shop_123");
+    assert.equal(safeAdminRedirectPath("/admin/login?next=/admin"), "/admin");
+    assert.equal(safeAdminRedirectPath("/cafe"), "/admin");
+    assert.equal(safeAdminRedirectPath("https://example.com"), "/admin");
+    assert.equal(safeAdminRedirectPath("//example.com"), "/admin");
+  });
+
+  it("validates explicit local platform fallback credentials", () => {
+    const originals = {
+      PLATFORM_ADMIN_EMAIL: process.env.PLATFORM_ADMIN_EMAIL,
+      PLATFORM_ADMIN_PASSWORD: process.env.PLATFORM_ADMIN_PASSWORD,
+      ADMIN_BASIC_USERNAME: process.env.ADMIN_BASIC_USERNAME,
+      ADMIN_BASIC_PASSWORD: process.env.ADMIN_BASIC_PASSWORD,
+    };
+
+    process.env.PLATFORM_ADMIN_EMAIL = "platform@perch.local";
+    process.env.PLATFORM_ADMIN_PASSWORD = "platform-pass";
+    delete process.env.ADMIN_BASIC_USERNAME;
+    delete process.env.ADMIN_BASIC_PASSWORD;
+
+    try {
+      assert.equal(isPlatformFallbackLoginValid("PLATFORM@perch.local", "platform-pass"), true);
+      assert.equal(isPlatformFallbackLoginValid("platform@perch.local", "wrong"), false);
+    } finally {
+      for (const [name, value] of Object.entries(originals)) {
+        if (value === undefined) {
+          delete process.env[name];
+        } else {
+          process.env[name] = value;
+        }
+      }
+    }
   });
 });
 
