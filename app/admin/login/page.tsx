@@ -1,6 +1,7 @@
-import { Activity, LockKeyhole, ReceiptText, Store } from "lucide-react";
+import { Activity, ReceiptText, Store } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
 import { BrandWordmark } from "@/components/BrandWordmark";
 import {
   getPlatformLoginCredentials,
@@ -53,39 +54,15 @@ export default async function AdminLoginPage({ searchParams }: PageProps) {
           </div>
         </div>
 
-        <form className="cafe-login-form" action="/api/admin/login" method="post">
-          <input type="hidden" name="next" value={nextPath} />
-          <div className="login-form-heading">
-            <LockKeyhole size={20} />
-            <div>
-              <h2>Admin login</h2>
-              <p>Use your Perch platform admin account.</p>
-            </div>
-          </div>
-
-          {params.error === "invalid" ? (
-            <p className="login-error" role="alert">
-              The email or password was not recognized, or this account is not a platform admin.
-            </p>
-          ) : null}
-
-          <label className="form-field">
-            <span>Email</span>
-            <input name="email" type="email" autoComplete="email" required placeholder="admin@example.com" />
-          </label>
-          <label className="form-field">
-            <span>Password</span>
-            <input name="password" type="password" autoComplete="current-password" required placeholder="Password" />
-          </label>
-          <button className="primary-action" type="submit">
-            Sign in
-          </button>
-          <p className="login-help">
-            {localFallback
+        <AdminLoginForm
+          nextPath={nextPath}
+          error={params.error}
+          helpText={
+            localFallback
               ? `Local demo: ${localCredentials.email} / ${localCredentials.password}`
-              : "Platform admins are assigned from the admin dashboard or directly in Supabase-backed user records."}
-          </p>
-        </form>
+              : "Use the platform admin credentials configured for this deployment."
+          }
+        />
       </section>
     </main>
   );
