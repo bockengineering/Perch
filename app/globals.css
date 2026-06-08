@@ -92,6 +92,192 @@ textarea {
   letter-spacing: 0;
 }
 
+.analytics-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.analytics-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.segmented-control {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--panel);
+}
+
+.segmented-control button {
+  min-width: 5.5rem;
+  border: 0;
+  border-right: 1px solid var(--border);
+  background: transparent;
+  color: var(--foreground);
+  padding: 0.6rem 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.segmented-control button:last-child {
+  border-right: 0;
+}
+
+.segmented-control button.is-active {
+  background: var(--foreground);
+  color: #ffffff;
+}
+
+.analytics-metric-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.analytics-metric-picker select {
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--panel);
+  color: var(--foreground);
+  padding: 0.55rem 0.75rem;
+  font-weight: 700;
+}
+
+.analytics-summary {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.analytics-summary div {
+  border: 1px solid var(--border-soft);
+  border-radius: 2px;
+  padding: 0.75rem;
+}
+
+.analytics-summary p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.analytics-summary strong {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.analytics-chart-shell {
+  position: relative;
+  min-height: 250px;
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: 2px;
+  background: linear-gradient(to bottom, transparent 0, transparent 24%, var(--border-soft) 25%, transparent 26%),
+    linear-gradient(to bottom, transparent 0, transparent 49%, var(--border-soft) 50%, transparent 51%),
+    linear-gradient(to bottom, transparent 0, transparent 74%, var(--border-soft) 75%, transparent 76%),
+    var(--panel);
+}
+
+.analytics-chart-grid {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(21, 21, 21, 0.04) 1px, transparent 1px);
+  background-size: 8.333% 100%;
+  pointer-events: none;
+}
+
+.analytics-bars {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(18px, 1fr);
+  align-items: end;
+  gap: 0.25rem;
+  height: 250px;
+  padding: 1rem 1rem 1.8rem;
+}
+
+.analytics-bar-column {
+  display: grid;
+  min-width: 0;
+  height: 100%;
+  grid-template-rows: 1fr 1rem;
+  gap: 0.35rem;
+  text-align: center;
+}
+
+.analytics-bar-track {
+  display: flex;
+  align-items: flex-end;
+  min-height: 0;
+}
+
+.analytics-bar {
+  width: 100%;
+  min-height: 0;
+  background: var(--foreground);
+  border-radius: 2px 2px 0 0;
+  transition: height 160ms ease;
+}
+
+.analytics-bar-column span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1rem;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.analytics-bar-column span.is-muted {
+  opacity: 0;
+}
+
+@media (max-width: 640px) {
+  .analytics-controls {
+    align-items: stretch;
+  }
+
+  .segmented-control {
+    width: 100%;
+  }
+
+  .segmented-control button {
+    flex: 1 1 0;
+  }
+
+  .analytics-metric-picker {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .analytics-metric-picker select {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .analytics-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-bars {
+    grid-auto-columns: minmax(7px, 1fr);
+    gap: 0.15rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
 .app-wordmark {
   display: block;
   width: 6.5rem;

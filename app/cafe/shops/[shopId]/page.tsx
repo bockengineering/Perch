@@ -16,6 +16,7 @@ import {
   Wifi,
 } from "lucide-react";
 import { BrandWordmark } from "@/components/BrandWordmark";
+import { CafeAnalyticsChart } from "@/components/cafe/CafeAnalyticsChart";
 import { CafeSettingsForm } from "@/components/cafe/CafeSettingsForm";
 import { EmergencyFreeAccessControl } from "@/components/cafe/EmergencyFreeAccessControl";
 import { CafeMembersPanel } from "@/components/cafe/CafeMembersPanel";
@@ -29,6 +30,7 @@ import {
 import { hostedPreviewDemoEnabled, hostedPreviewShopId } from "@/lib/auth/hosted-preview";
 import { isSupabaseAdminConfigured } from "@/lib/auth/supabase";
 import { getPrisma } from "@/lib/db";
+import { getShopAnalytics, type ShopAnalytics } from "@/lib/services/shop-analytics";
 import { startOfTodayUtc } from "@/lib/utils/time";
 
 export const dynamic = "force-dynamic";
@@ -98,7 +100,51 @@ function SectionTitle({
   );
 }
 
+function buildHostedPreviewAnalytics(): ShopAnalytics {
+  const dayLabels = Array.from({ length: 30 }, (_, index) => `${index + 1}`);
+  const monthLabels = ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+
+  const makePoint = (label: string, index: number) => {
+    const paidPasses = 3 + ((index * 5) % 9);
+    const grossRevenueCents = paidPasses * (index % 3 === 0 ? 800 : 500);
+    const platformFeeCents = Math.round(grossRevenueCents * 0.5);
+
+    return {
+      key: label,
+      label,
+      portalVisits: 42 + ((index * 13) % 58),
+      freeGrants: 31 + ((index * 11) % 44),
+      paidPasses,
+      grossRevenueCents,
+      cafeShareCents: grossRevenueCents - platformFeeCents,
+      platformFeeCents,
+      voucherRedemptions: 2 + ((index * 7) % 13),
+      failedAuthorizations: index % 11 === 0 ? 1 : 0,
+    };
+  };
+
+  return {
+    days: dayLabels.map(makePoint),
+    months: monthLabels.map((label, index) => {
+      const point = makePoint(label, index + 30);
+      return {
+        ...point,
+        portalVisits: point.portalVisits * 24,
+        freeGrants: point.freeGrants * 22,
+        paidPasses: point.paidPasses * 26,
+        grossRevenueCents: point.grossRevenueCents * 26,
+        cafeShareCents: point.cafeShareCents * 26,
+        platformFeeCents: point.platformFeeCents * 26,
+        voucherRedemptions: point.voucherRedemptions * 24,
+        failedAuthorizations: point.failedAuthorizations * 3,
+      };
+    }),
+  };
+}
+
 function HostedPreviewCafeConsole() {
+  const analytics = buildHostedPreviewAnalytics();
+
   return (
     <main className="mx-auto grid max-w-6xl gap-6 px-6 py-8">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-5">
@@ -134,6 +180,15 @@ function HostedPreviewCafeConsole() {
         <MetricCard label="30-day cafe share" value="$640.00" />
         <MetricCard label="UniFi status" value="CONNECTED" />
         <MetricCard label="Failed auths today" value={0} />
+      </section>
+
+      <section className="surface grid gap-4 p-4">
+        <SectionTitle
+          icon={Activity}
+          title="Cafe analytics"
+          detail="Toggle between daily and monthly views for traffic, free access, paid passes, staff codes, and authorization failures."
+        />
+        <CafeAnalyticsChart analytics={analytics} />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1fr_380px]">
@@ -310,6 +365,7 @@ export default async function CafeShopPage({ params }: PageProps) {
     recentRedemptions,
     recentNetworkFailures,
     members,
+    analytics,
   ] = await Promise.all([
     prisma.portalSession.count({ where: { shopId: shop.id, createdAt: { gte: today } } }),
     prisma.accessGrant.count({
@@ -402,6 +458,7 @@ export default async function CafeShopPage({ params }: PageProps) {
       },
       orderBy: { createdAt: "desc" },
     }),
+    getShopAnalytics({ id: shop.id, timezone: shop.timezone }, now),
   ]);
 
   const grossToday = revenueToday._sum.amountCents ?? 0;
@@ -479,6 +536,15 @@ export default async function CafeShopPage({ params }: PageProps) {
         ) : null}
         <MetricCard label="Voucher uses today" value={voucherRedemptions} detail="Staff-code redemptions" />
         <MetricCard label="Failed auths today" value={failedAuths} detail="Needs staff attention" />
+      </section>
+
+      <section className="surface grid gap-4 p-4">
+        <SectionTitle
+          icon={Activity}
+          title="Cafe analytics"
+          detail="Toggle between daily and monthly views for traffic, free access, paid passes, staff codes, and authorization failures."
+        />
+        <CafeAnalyticsChart analytics={analytics} />
       </section>
 
       {isOwner ? (

@@ -4,11 +4,13 @@ import { Activity, AlertTriangle, CreditCard, Settings, ShieldCheck, Ticket, Use
 import { BrandWordmark } from "@/components/BrandWordmark";
 import { PricePlanForm } from "@/components/admin/PricePlanForm";
 import { UnifiSettingsForm } from "@/components/admin/UnifiSettingsForm";
+import { CafeAnalyticsChart } from "@/components/cafe/CafeAnalyticsChart";
 import { CafeMembersPanel } from "@/components/cafe/CafeMembersPanel";
 import { CafeSettingsForm } from "@/components/cafe/CafeSettingsForm";
 import { EmergencyFreeAccessControl } from "@/components/cafe/EmergencyFreeAccessControl";
 import { VoucherCreateForm } from "@/components/staff/VoucherCreateForm";
 import { getPrisma } from "@/lib/db";
+import { getShopAnalytics } from "@/lib/services/shop-analytics";
 import { isSupabaseAdminConfigured } from "@/lib/auth/supabase";
 import { startOfTodayUtc } from "@/lib/utils/time";
 
@@ -98,6 +100,7 @@ export default async function ShopDetailPage({ params }: PageProps) {
     recentGrants,
     recentFailures,
     recentVouchers,
+    analytics,
   ] = await Promise.all([
     prisma.portalSession.count({ where: { shopId: shop.id, createdAt: { gte: today } } }),
     prisma.accessGrant.count({
@@ -168,6 +171,7 @@ export default async function ShopDetailPage({ params }: PageProps) {
       orderBy: { createdAt: "desc" },
       take: 8,
     }),
+    getShopAnalytics({ id: shop.id, timezone: shop.timezone }),
   ]);
 
   const gross = revenue._sum.amountCents ?? 0;
@@ -226,6 +230,15 @@ export default async function ShopDetailPage({ params }: PageProps) {
         <StatusCard label="Cafe share today" value={money(cafeShare)} />
         <StatusCard label="Platform fee today" value={money(platformFee)} detail={`${money(thirtyDayPlatformFee)} in 30 days`} />
         <StatusCard label="Failed auths today" value={failures} />
+      </section>
+
+      <section className="surface grid gap-4 p-4">
+        <SectionTitle
+          icon={Activity}
+          title="Cafe analytics"
+          detail="Toggle between daily and monthly views for portal traffic, grants, payments, staff codes, and failed authorizations."
+        />
+        <CafeAnalyticsChart analytics={analytics} />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">

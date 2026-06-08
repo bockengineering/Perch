@@ -5,6 +5,7 @@ import { safeRedirectUrl } from "@/lib/utils/redirect";
 import { getNextLocalMidnight, getShopLocalDate } from "@/lib/utils/time";
 import { hashVoucherCode, normalizeVoucherCode } from "@/lib/services/vouchers";
 import { emergencyFreeMinutesRemaining, isEmergencyFreeActive } from "@/lib/services/emergency-free";
+import { analyticsDayKey, analyticsMonthKey } from "@/lib/services/shop-analytics";
 import { stripeConnectedAccountController } from "@/lib/services/payments";
 import { applyDatabaseUrlAlias, databaseUrl } from "@/lib/env";
 import {
@@ -71,6 +72,14 @@ describe("local day policy", () => {
     assert.equal(isEmergencyFreeActive(shop, now), true);
     assert.equal(emergencyFreeMinutesRemaining(shop, now), 45);
     assert.equal(isEmergencyFreeActive(shop, new Date("2026-05-13T07:00:00.000Z")), false);
+  });
+
+  it("buckets analytics by the cafe local day and month", () => {
+    const date = new Date("2026-06-01T06:30:00.000Z");
+    assert.equal(analyticsDayKey("America/Los_Angeles", date), "2026-05-31");
+    assert.equal(analyticsMonthKey("America/Los_Angeles", date), "2026-05");
+    assert.equal(analyticsDayKey("America/New_York", date), "2026-06-01");
+    assert.equal(analyticsMonthKey("America/New_York", date), "2026-06");
   });
 });
 
