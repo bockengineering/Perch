@@ -648,7 +648,7 @@ export default async function CafeShopPage({ params }: PageProps) {
 
       {isOwner ? (
         <>
-          <section className="grid gap-4 lg:grid-cols-2">
+          <section className="grid gap-4">
             <div className="surface grid gap-4 p-4">
               <SectionTitle icon={PlugZap} title="UniFi integration" detail="Connect the cafe controller, choose a site, and restrict Perch to guest SSIDs." />
               <UnifiSettingsForm
@@ -686,7 +686,7 @@ export default async function CafeShopPage({ params }: PageProps) {
             </div>
           </section>
 
-          <section className="grid gap-4 lg:grid-cols-2">
+          <section className="grid gap-4">
             <div className="surface grid gap-4 p-4">
               <SectionTitle icon={Settings} title="Cafe settings" detail="Control the public policy guests experience at this location." />
               <CafeSettingsForm
@@ -707,12 +707,12 @@ export default async function CafeShopPage({ params }: PageProps) {
                 Free access is device-based. Private address rotation can create extra free grants, which is expected for the MVP.
               </p>
             </div>
+          </section>
 
-            <div className="surface grid gap-4 p-4">
-              <SectionTitle icon={CreditCard} title="Paid plans" detail="Plans shown on the paywall after the daily free hour ends." />
-              {shop.pricePlans.length === 0 ? <p className="text-sm text-[var(--muted)]">No paid plans configured yet.</p> : null}
-              <PricePlanForm shopId={shop.id} plans={shop.pricePlans} />
-            </div>
+          <section className="surface grid gap-4 p-4">
+            <SectionTitle icon={CreditCard} title="Paid plans" detail="Plans shown on the paywall after the daily free hour ends." />
+            {shop.pricePlans.length === 0 ? <p className="text-sm text-[var(--muted)]">No paid plans configured yet.</p> : null}
+            <PricePlanForm shopId={shop.id} plans={shop.pricePlans} />
           </section>
 
           <CafeMembersPanel

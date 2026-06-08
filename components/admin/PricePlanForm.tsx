@@ -47,7 +47,7 @@ function PricePlanRow({
   }
 
   return (
-    <form action={submit} className="grid gap-3 border-b border-[var(--border)] py-3 last:border-0 md:grid-cols-[1fr_120px_120px_90px_80px_auto]">
+    <form action={submit} className="price-plan-row">
       <input
         name="label"
         defaultValue={plan.label}
@@ -83,7 +83,7 @@ function PricePlanRow({
         className="rounded-md border border-[var(--border)] px-3 py-2 text-sm"
         required
       />
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="price-plan-actions flex flex-wrap items-center gap-3">
         <label className="flex items-center gap-2 text-sm font-medium">
           <input name="active" type="checkbox" defaultChecked={plan.active} className="account-checkbox" />
           Active
@@ -93,7 +93,7 @@ function PricePlanRow({
           Save
         </button>
       </div>
-      {message ? <p className="md:col-span-6 text-sm text-[var(--danger)]">{message}</p> : null}
+      {message ? <p className="price-plan-message text-sm text-[var(--danger)]">{message}</p> : null}
     </form>
   );
 }
@@ -132,8 +132,8 @@ export function PricePlanForm({
   return (
     <div className="grid gap-4">
       {plans.length ? (
-        <div className="grid gap-1">
-          <div className="hidden text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)] md:grid md:grid-cols-[1fr_120px_120px_90px_80px_auto]">
+        <div className="price-plan-table">
+          <div className="price-plan-header text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
             <span>Plan</span>
             <span>Minutes</span>
             <span>Cents</span>
@@ -147,7 +147,7 @@ export function PricePlanForm({
         </div>
       ) : null}
 
-      <form action={submit} className="grid gap-3 border-t border-[var(--border)] pt-4 md:grid-cols-[1fr_120px_120px_90px_auto]">
+      <form action={submit} className="price-plan-add-row">
         <input
           name="label"
           placeholder="Plan label"
@@ -180,7 +180,7 @@ export function PricePlanForm({
           <Plus size={16} />
           Add
         </button>
-        {message ? <p className="md:col-span-5 text-sm text-[var(--danger)]">{message}</p> : null}
+        {message ? <p className="price-plan-message text-sm text-[var(--danger)]">{message}</p> : null}
       </form>
     </div>
   );
