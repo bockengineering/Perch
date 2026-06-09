@@ -343,11 +343,42 @@ textarea {
   pointer-events: none;
 }
 
+.analytics-hover-card {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 2;
+  min-width: 8.75rem;
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 0.55rem 0.65rem;
+  box-shadow: 0 8px 18px rgba(8, 8, 8, 0.08);
+  pointer-events: none;
+}
+
+.analytics-hover-card span,
+.analytics-hover-card small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.analytics-hover-card strong {
+  display: block;
+  margin: 0.1rem 0;
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
 .analytics-bars {
   position: relative;
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(18px, 1fr);
+  grid-auto-columns: minmax(0, 1fr);
   align-items: end;
   gap: 0.25rem;
   height: 100%;
@@ -359,6 +390,11 @@ textarea {
   align-items: flex-end;
   min-width: 0;
   height: 100%;
+  outline: 0;
+}
+
+.analytics-bar-column:focus-visible .analytics-bar {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--foreground);
 }
 
 .analytics-bar {
@@ -374,7 +410,7 @@ textarea {
 .analytics-x-labels {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(18px, 1fr);
+  grid-auto-columns: minmax(0, 1fr);
   gap: 0.25rem;
   padding: 0.4rem 0.75rem 0;
   text-align: center;
@@ -436,14 +472,23 @@ textarea {
     font-size: 0.62rem;
   }
 
+  .analytics-hover-card {
+    top: 0.5rem;
+    right: 0.5rem;
+    min-width: 7.5rem;
+    padding: 0.45rem 0.5rem;
+  }
+
+  .analytics-hover-card strong {
+    font-size: 0.95rem;
+  }
+
   .analytics-bars {
-    grid-auto-columns: minmax(7px, 1fr);
     gap: 0.15rem;
     padding: 0.75rem 0.45rem 0;
   }
 
   .analytics-x-labels {
-    grid-auto-columns: minmax(7px, 1fr);
     gap: 0.15rem;
     padding-left: 0.45rem;
     padding-right: 0.45rem;
