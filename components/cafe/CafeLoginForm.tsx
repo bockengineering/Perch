@@ -1,25 +1,23 @@
 "use client";
 
 import { LockKeyhole } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
-type AdminLoginFormProps = {
+type CafeLoginFormProps = {
   nextPath: string;
   error?: string;
   helpText: string;
 };
 
 function errorMessage(error?: string) {
-  if (error === "server") {
-    return "We could not complete the login request. Refresh the shared Vercel link, then try again.";
-  }
   if (error === "invalid") {
-    return "The email or password was not recognized, or this account is not a platform admin.";
+    return "The email or password was not recognized, or this account is not assigned to a cafe.";
   }
   return null;
 }
 
-export function AdminLoginForm({ nextPath, error, helpText }: AdminLoginFormProps) {
+export function CafeLoginForm({ nextPath, error, helpText }: CafeLoginFormProps) {
   const [pending, setPending] = useState(false);
   const [stalled, setStalled] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
@@ -56,13 +54,13 @@ export function AdminLoginForm({ nextPath, error, helpText }: AdminLoginFormProp
   }
 
   return (
-    <form className="cafe-login-form" action="/api/admin/login" method="post" onSubmit={submit}>
+    <form className="cafe-login-form" action="/api/cafe/login" method="post" onSubmit={submit}>
       <input type="hidden" name="next" value={nextPath} />
       <div className="login-form-heading">
         <LockKeyhole size={20} />
         <div>
-          <h2>Admin login</h2>
-          <p>Use your Perch platform admin account.</p>
+          <h2>Cafe login</h2>
+          <p>Use your Perch cafe owner or staff account.</p>
         </div>
       </div>
 
@@ -80,13 +78,13 @@ export function AdminLoginForm({ nextPath, error, helpText }: AdminLoginFormProp
 
       {stalled ? (
         <p className="login-error" role="alert">
-          The login request is taking too long. Refresh the Vercel share link and try again.
+          The login request is taking longer than expected. Keep this page open or try again.
         </p>
       ) : null}
 
       <label className="form-field">
         <span>Email</span>
-        <input name="email" type="email" autoComplete="email" required placeholder="admin@example.com" />
+        <input name="email" type="email" autoComplete="email" required placeholder="owner@example.com" />
       </label>
       <label className="form-field">
         <span>Password</span>
@@ -96,6 +94,13 @@ export function AdminLoginForm({ nextPath, error, helpText }: AdminLoginFormProp
         {pending ? "Signing in..." : "Sign in"}
       </button>
       <p className="login-help">{helpText}</p>
+      <p className="login-help">
+        New cafe?{" "}
+        <Link className="login-inline-link" href="/cafe/signup">
+          Sign up
+        </Link>
+        .
+      </p>
     </form>
   );
 }

@@ -1,8 +1,8 @@
-import { Coffee, LockKeyhole, ReceiptText, Ticket } from "lucide-react";
+import { Coffee, ReceiptText, Ticket } from "lucide-react";
 import { cookies } from "next/headers";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BrandWordmark } from "@/components/BrandWordmark";
+import { CafeLoginForm } from "@/components/cafe/CafeLoginForm";
 import {
   CAFE_SESSION_COOKIE_NAME,
   safeCafeRedirectPath,
@@ -51,42 +51,15 @@ export default async function CafeLoginPage({ searchParams }: PageProps) {
           </div>
         </div>
 
-        <form className="cafe-login-form" action="/api/cafe/login" method="post">
-          <input type="hidden" name="next" value={nextPath} />
-          <div className="login-form-heading">
-            <LockKeyhole size={20} />
-            <div>
-              <h2>Cafe login</h2>
-              <p>Use your Perch cafe owner or staff account.</p>
-            </div>
-          </div>
-
-          {params.error === "invalid" ? (
-            <p className="login-error" role="alert">
-              The email or password was not recognized, or this account is not assigned to a cafe.
-            </p>
-          ) : null}
-
-          <label className="form-field">
-            <span>Email</span>
-            <input name="email" type="email" autoComplete="email" required placeholder="owner@example.com" />
-          </label>
-          <label className="form-field">
-            <span>Password</span>
-            <input name="password" type="password" autoComplete="current-password" required placeholder="Password" />
-          </label>
-          <button className="primary-action" type="submit">
-            Sign in
-          </button>
-          <p className="login-help">
-            {previewDemo
+        <CafeLoginForm
+          nextPath={nextPath}
+          error={params.error}
+          helpText={
+            previewDemo
               ? `Preview demo: ${hostedPreviewCafeCredentials.email} / ${hostedPreviewCafeCredentials.password}`
-              : "New owners continue to the setup walkthrough after login."}
-          </p>
-          <p className="login-help">
-            New cafe? <Link className="login-inline-link" href="/cafe/signup">Sign up</Link>.
-          </p>
-        </form>
+              : "New owners continue to the setup walkthrough after login."
+          }
+        />
       </section>
     </main>
   );
