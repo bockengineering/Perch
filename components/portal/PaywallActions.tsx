@@ -10,13 +10,11 @@ type Plan = {
 };
 
 function planButtonLabel(plan: Plan) {
-  const price = new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: plan.currency.toUpperCase(),
     maximumFractionDigits: 0,
   }).format(plan.amountCents / 100);
-
-  return `${price}, ${plan.label}`;
 }
 
 export function PaywallActions({
@@ -74,21 +72,22 @@ export function PaywallActions({
   }
 
   return (
-    <div className="mt-6 grid gap-3">
+    <div className="portal-actions">
       {plans.map((plan) => (
         <button
           key={plan.id}
           type="button"
           onClick={() => void startCheckout(plan.id)}
           disabled={Boolean(loading)}
-          className="portal-primary-action w-full rounded-md px-4 py-3 text-left text-sm font-semibold text-white disabled:opacity-60"
+          className="portal-plan-button"
         >
-          {loading === plan.id ? "Connecting..." : planButtonLabel(plan)}
+          <span>{loading === plan.id ? "Connecting..." : planButtonLabel(plan)}</span>
+          <strong>{plan.label}</strong>
         </button>
       ))}
 
-      <div className="mt-2 grid gap-2">
-        <label className="text-sm font-medium" htmlFor="voucher-code">
+      <div className="portal-voucher-box">
+        <label htmlFor="voucher-code">
           Enter staff code
         </label>
         <div className="flex gap-2">
@@ -103,14 +102,14 @@ export function PaywallActions({
             type="button"
             onClick={() => void redeemVoucher()}
             disabled={Boolean(loading)}
-            className="rounded-md border border-[var(--border)] px-4 py-2 text-sm font-semibold disabled:opacity-60"
+            className="portal-secondary-action disabled:opacity-60"
           >
             {loading === "voucher" ? "Checking..." : "Apply"}
           </button>
         </div>
       </div>
 
-      {message ? <p className="text-sm text-[var(--danger)]">{message}</p> : null}
+      {message ? <p className="portal-message text-sm text-[var(--danger)]">{message}</p> : null}
     </div>
   );
 }

@@ -99,6 +99,120 @@ textarea {
   letter-spacing: 0;
 }
 
+.dashboard-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.dashboard-hero-main,
+.dashboard-hero-actions {
+  min-width: 0;
+}
+
+.dashboard-hero-copy {
+  max-width: 48rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.dashboard-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.dashboard-kicker {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.dashboard-context-grid {
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+}
+
+.dashboard-context-grid div {
+  min-width: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0.85rem;
+}
+
+.dashboard-context-grid div:last-child {
+  border-bottom: 0;
+}
+
+.dashboard-context-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.dashboard-context-grid strong {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.dashboard-section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.dashboard-section-heading h2 {
+  margin: 0.1rem 0 0;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.dashboard-section-heading p {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.dashboard-metric-card {
+  position: relative;
+  display: grid;
+  align-content: start;
+  min-height: 8.75rem;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.dashboard-metric-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--border);
+}
+
+.dashboard-metric-success::before {
+  background: var(--success);
+}
+
+.dashboard-metric-warning::before {
+  background: var(--warning);
+}
+
+.dashboard-metric-danger::before {
+  background: var(--danger);
+}
+
 .analytics-card {
   display: grid;
   gap: 1rem;
@@ -797,6 +911,131 @@ svg {
 
 .portal-brand-name {
   color: var(--foreground);
+}
+
+.portal-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  background:
+    linear-gradient(to right, rgba(21, 21, 21, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(21, 21, 21, 0.05) 1px, transparent 1px),
+    var(--background);
+  background-size: 32px 32px;
+  padding: 1.25rem;
+}
+
+.portal-card {
+  display: grid;
+  width: min(100%, 30rem);
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.portal-card-top {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+}
+
+.portal-state-pill {
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+  padding: 0.35rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.portal-eyebrow {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.portal-title {
+  margin: -0.5rem 0 0;
+  font-size: 1.9rem;
+  line-height: 1.08;
+}
+
+.portal-copy {
+  max-width: 24rem;
+  margin: -0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.portal-actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.portal-plan-button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--shop-accent, var(--foreground));
+  color: #fff;
+  padding: 0.9rem 1rem;
+  text-align: left;
+}
+
+.portal-plan-button span {
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.portal-plan-button strong {
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.portal-voucher-box {
+  display: grid;
+  gap: 0.55rem;
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+  padding: 0.85rem;
+}
+
+.portal-voucher-box label {
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.portal-secondary-action {
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: #fff;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.portal-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.portal-message {
+  margin: 0;
 }
 
 .portal-primary-action {
@@ -1529,6 +1768,19 @@ pre {
 }
 
 @media (min-width: 768px) {
+  .dashboard-context-grid {
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  }
+
+  .dashboard-context-grid div {
+    border-right: 1px solid var(--border);
+    border-bottom: 0;
+  }
+
+  .dashboard-context-grid div:last-child {
+    border-right: 0;
+  }
+
   .sales-nav {
     grid-template-columns: 1fr auto auto;
   }
@@ -1625,6 +1877,14 @@ pre {
 }
 
 @media (min-width: 1024px) {
+  .dashboard-hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .dashboard-context-grid {
+    grid-column: 1 / -1;
+  }
+
   .step-item {
     grid-template-columns: 8rem minmax(0, 1fr);
     padding: 1.5rem;

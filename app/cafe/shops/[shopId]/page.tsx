@@ -39,9 +39,19 @@ type PageProps = {
   params: Promise<{ shopId: string }>;
 };
 
-function MetricCard({ label, value, detail }: { label: string; value: string | number; detail?: string }) {
+function MetricCard({
+  label,
+  value,
+  detail,
+  tone = "neutral",
+}: {
+  label: string;
+  value: string | number;
+  detail?: string;
+  tone?: "neutral" | "success" | "warning" | "danger";
+}) {
   return (
-    <div className="surface p-4">
+    <div className={`surface dashboard-metric-card dashboard-metric-${tone}`}>
       <p className="text-sm text-[var(--muted)]">{label}</p>
       <p className="metric mt-2 text-3xl font-semibold">{value}</p>
       {detail ? <p className="mt-2 text-xs text-[var(--muted)]">{detail}</p> : null}
@@ -147,20 +157,36 @@ function HostedPreviewCafeConsole() {
 
   return (
     <main className="mx-auto grid max-w-6xl gap-6 px-6 py-8">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-5">
-        <div>
+      <header className="dashboard-hero surface p-5">
+        <div className="dashboard-hero-main">
           <BrandWordmark className="app-wordmark" width={104} height={46} priority />
-          <p className="mt-3 text-sm font-semibold text-[var(--accent)]">Cafe back office</p>
+          <p className="dashboard-kicker mt-3">Cafe back office</p>
           <h1 className="text-3xl font-semibold">Demo Cafe</h1>
-          <p className="mt-1 text-sm text-[var(--muted)]">
+          <p className="dashboard-hero-copy mt-1">
             Preview console with mock cafe settings, transactions, and staff-code controls.
           </p>
         </div>
-        <form action="/api/cafe/logout" method="post">
-          <button className="rounded-md border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold" type="submit">
-            Sign out
-          </button>
-        </form>
+        <div className="dashboard-hero-actions">
+          <form action="/api/cafe/logout" method="post">
+            <button className="rounded-md border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold" type="submit">
+              Sign out
+            </button>
+          </form>
+        </div>
+        <div className="dashboard-context-grid">
+          <div>
+            <span>Guest portal</span>
+            <strong>/p/demo-cafe</strong>
+          </div>
+          <div>
+            <span>Free policy</span>
+            <strong>60 min daily</strong>
+          </div>
+          <div>
+            <span>Payments</span>
+            <strong>Preview mode</strong>
+          </div>
+        </div>
       </header>
 
       <section className="surface border-l-4 border-l-[var(--foreground)] p-4">
@@ -171,15 +197,24 @@ function HostedPreviewCafeConsole() {
         </p>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-4">
-        <MetricCard label="Paid passes today" value={9} />
-        <MetricCard label="Gross today" value="$48.00" />
-        <MetricCard label="Cafe share today" value="$24.00" />
-        <MetricCard label="Voucher uses today" value={14} />
-        <MetricCard label="30-day gross" value="$1,280.00" />
-        <MetricCard label="30-day cafe share" value="$640.00" />
-        <MetricCard label="UniFi status" value="CONNECTED" />
-        <MetricCard label="Failed auths today" value={0} />
+      <section className="grid gap-3">
+        <div className="dashboard-section-heading">
+          <div>
+            <p className="dashboard-kicker">Today</p>
+            <h2>Operating snapshot</h2>
+          </div>
+          <p>Guest access, paid extensions, and support signals at a glance.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-4">
+          <MetricCard label="Paid passes today" value={9} tone="success" />
+          <MetricCard label="Gross today" value="$48.00" tone="success" />
+          <MetricCard label="Cafe share today" value="$24.00" />
+          <MetricCard label="Voucher uses today" value={14} />
+          <MetricCard label="30-day gross" value="$1,280.00" />
+          <MetricCard label="30-day cafe share" value="$640.00" />
+          <MetricCard label="UniFi status" value="CONNECTED" tone="success" />
+          <MetricCard label="Failed auths today" value={0} />
+        </div>
       </section>
 
       <section className="surface grid gap-4 p-4">
@@ -471,6 +506,12 @@ export default async function CafeShopPage({ params }: PageProps) {
   const stripeStatus = shop.stripeChargesEnabled && shop.stripePayoutsEnabled ? "CONNECTED" : "INCOMPLETE";
   const unifiStatus = shop.unifiIntegration?.connectionStatus ?? "UNTESTED";
   const emergencyFreeActive = Boolean(shop.emergencyFreeUntil && shop.emergencyFreeUntil > now);
+  const localDateLabel = new Intl.DateTimeFormat("en-US", {
+    timeZone: shop.timezone,
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  }).format(now);
   const setupItems = [
     { label: "Cafe is active", complete: shop.status === "ACTIVE", detail: shop.status },
     { label: "UniFi connected", complete: unifiStatus === "CONNECTED", detail: unifiStatus },
@@ -482,11 +523,14 @@ export default async function CafeShopPage({ params }: PageProps) {
 
   return (
     <main className="mx-auto grid max-w-6xl gap-6 px-6 py-8">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-5">
-        <div>
+      <header className="dashboard-hero surface p-5">
+        <div className="dashboard-hero-main">
           <BrandWordmark className="app-wordmark" width={104} height={46} priority />
-          <p className="mt-3 text-sm font-semibold text-[var(--accent)]">Cafe console</p>
+          <p className="dashboard-kicker mt-3">Cafe console</p>
           <h1 className="text-3xl font-semibold">{shop.name}</h1>
+          <p className="dashboard-hero-copy mt-1">
+            {localDateLabel} in {shop.timezone}. Guests get {shop.freeMinutesPerDay} free minutes before paid passes or staff codes.
+          </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <StatusPill status={shop.status}>{shop.status}</StatusPill>
             <StatusPill status={unifiStatus}>{`UniFi ${unifiStatus}`}</StatusPill>
@@ -495,7 +539,7 @@ export default async function CafeShopPage({ params }: PageProps) {
             <StatusPill status={isOwner ? "ACTIVE" : "PAUSED"}>{isOwner ? "Owner" : "Staff"}</StatusPill>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="dashboard-hero-actions">
           <Link
             href={`/staff/shops/${shop.id}/vouchers`}
             className="rounded-md border border-[var(--border)] px-4 py-2 text-sm font-semibold"
@@ -514,28 +558,56 @@ export default async function CafeShopPage({ params }: PageProps) {
             </button>
           </form>
         </div>
+        <div className="dashboard-context-grid">
+          <div>
+            <span>Guest portal</span>
+            <strong>/p/{shop.slug}</strong>
+          </div>
+          <div>
+            <span>Free reset</span>
+            <strong>{shop.freeMinutesPerDay} min daily</strong>
+          </div>
+          <div>
+            <span>Network</span>
+            <strong>UniFi {unifiStatus}</strong>
+          </div>
+          <div>
+            <span>Payments</span>
+            <strong>Stripe {stripeStatus}</strong>
+          </div>
+        </div>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-4">
-        <MetricCard label="Portal visits today" value={portalVisitsToday} detail="Captive portal opens" />
-        <MetricCard label="Free grants today" value={freeGrantsToday} detail={`${thirtyDayFreeGrants} in 30 days`} />
-        <MetricCard label="Active guest grants" value={activeGrants} detail="Currently authorized" />
-        <MetricCard label="Devices seen today" value={devicesSeenToday} detail="Hashed device identity" />
-        {isOwner ? (
-          <>
-            <MetricCard
-              label="Emergency free"
-              value={emergencyFreeActive ? "On" : "Off"}
-              detail={emergencyFreeActive && shop.emergencyFreeUntil ? `Until ${formatTimeInZone(shop.emergencyFreeUntil, shop.timezone)}` : "Owner-controlled override"}
-            />
-            <MetricCard label="Paid passes today" value={paidToday} detail={`${transactions.length} recent orders loaded`} />
-            <MetricCard label="Gross today" value={money(grossToday)} detail={`${money(thirtyDayGross)} in 30 days`} />
-            <MetricCard label="Cafe share today" value={money(cafeShareToday)} detail={`${money(thirtyDayShare)} in 30 days`} />
-            <MetricCard label="Checkout grace" value={checkoutGraceToday} detail="Temporary Stripe access grants" />
-          </>
-        ) : null}
-        <MetricCard label="Voucher uses today" value={voucherRedemptions} detail="Staff-code redemptions" />
-        <MetricCard label="Failed auths today" value={failedAuths} detail="Needs staff attention" />
+      <section className="grid gap-3">
+        <div className="dashboard-section-heading">
+          <div>
+            <p className="dashboard-kicker">Today</p>
+            <h2>Operating snapshot</h2>
+          </div>
+          <p>Guest traffic, access grants, payment activity, and support signals.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-4">
+          <MetricCard label="Portal visits today" value={portalVisitsToday} detail="Captive portal opens" />
+          <MetricCard label="Free grants today" value={freeGrantsToday} detail={`${thirtyDayFreeGrants} in 30 days`} />
+          <MetricCard label="Active guest grants" value={activeGrants} detail="Currently authorized" tone="success" />
+          <MetricCard label="Devices seen today" value={devicesSeenToday} detail="Hashed device identity" />
+          {isOwner ? (
+            <>
+              <MetricCard
+                label="Emergency free"
+                value={emergencyFreeActive ? "On" : "Off"}
+                detail={emergencyFreeActive && shop.emergencyFreeUntil ? `Until ${formatTimeInZone(shop.emergencyFreeUntil, shop.timezone)}` : "Owner-controlled override"}
+                tone={emergencyFreeActive ? "warning" : "neutral"}
+              />
+              <MetricCard label="Paid passes today" value={paidToday} detail={`${transactions.length} recent orders loaded`} />
+              <MetricCard label="Gross today" value={money(grossToday)} detail={`${money(thirtyDayGross)} in 30 days`} tone="success" />
+              <MetricCard label="Cafe share today" value={money(cafeShareToday)} detail={`${money(thirtyDayShare)} in 30 days`} />
+              <MetricCard label="Checkout grace" value={checkoutGraceToday} detail="Temporary Stripe access grants" />
+            </>
+          ) : null}
+          <MetricCard label="Voucher uses today" value={voucherRedemptions} detail="Staff-code redemptions" />
+          <MetricCard label="Failed auths today" value={failedAuths} detail="Needs staff attention" tone={failedAuths > 0 ? "danger" : "neutral"} />
+        </div>
       </section>
 
       <section className="surface grid gap-4 p-4">

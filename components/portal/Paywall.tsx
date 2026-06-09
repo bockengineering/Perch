@@ -12,11 +12,15 @@ export function Paywall({
   plans: PricePlan[];
 }) {
   return (
-    <main className="flex min-h-screen items-center justify-center px-5 py-10" style={shopAccentStyle(shop.brandPrimaryColor)}>
-      <section className="surface w-full max-w-md p-6">
-        <PortalBrand shop={shop} />
-        <h1 className="mt-3 text-2xl font-semibold">Your free Wi-Fi hour for today has ended.</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">Need more time?</p>
+    <main className="portal-page" style={shopAccentStyle(shop.brandPrimaryColor)}>
+      <section className="portal-card surface">
+        <div className="portal-card-top">
+          <PortalBrand shop={shop} />
+          <span className="portal-state-pill">Free hour used</span>
+        </div>
+        <p className="portal-eyebrow">Guest Wi-Fi</p>
+        <h1 className="portal-title">Your free Wi-Fi hour for today has ended.</h1>
+        <p className="portal-copy">Need more time? Choose a pass or enter a staff code from the counter.</p>
         <PaywallActions
           portalSessionId={portalSessionId}
           plans={plans.map((plan) => ({
