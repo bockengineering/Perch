@@ -31,6 +31,23 @@ function formatValue(value: number, money?: boolean) {
   return money ? formatMoney(value) : value.toLocaleString("en-US");
 }
 
+function formatAxisValue(value: number, money?: boolean) {
+  const options: Intl.NumberFormatOptions = {
+    maximumFractionDigits: value >= 1000 ? 1 : 0,
+    notation: value >= 1000 ? "compact" : "standard",
+  };
+
+  if (money) {
+    return new Intl.NumberFormat("en-US", {
+      ...options,
+      currency: "USD",
+      style: "currency",
+    }).format(value / 100);
+  }
+
+  return new Intl.NumberFormat("en-US", options).format(value);
+}
+
 function getMetricValue(point: ShopAnalyticsPoint, metric: MetricKey) {
   return point[metric];
 }
@@ -108,26 +125,42 @@ export function CafeAnalyticsChart({ analytics }: { analytics: ShopAnalytics }) 
       </div>
 
       <div className="analytics-chart-shell" role="img" aria-label={`${metricConfig.label} by ${period}`}>
-        <div className="analytics-chart-grid" />
-        <div className="analytics-bars">
-          {data.map((point, index) => {
-            const value = getMetricValue(point, metric);
-            const height = max > 0 ? Math.max(2, Math.round((value / max) * 100)) : 0;
-            const showLabel = period === "months" || index === 0 || index === data.length - 1 || index % 5 === 0;
+        <div className="analytics-y-axis" aria-hidden="true">
+          <span>{formatAxisValue(max, metricConfig.money)}</span>
+          <span>{formatAxisValue(max / 2, metricConfig.money)}</span>
+          <span>0</span>
+        </div>
+        <div className="analytics-plot-wrap">
+          <div className="analytics-plot-area">
+            <div className="analytics-chart-grid" />
+            <div className="analytics-bars">
+              {data.map((point) => {
+                const value = getMetricValue(point, metric);
+                const height = max > 0 ? Math.max(2, Math.round((value / max) * 100)) : 0;
 
-            return (
-              <div className="analytics-bar-column" key={point.key}>
-                <div className="analytics-bar-track">
-                  <div
-                    className="analytics-bar"
-                    style={{ height: `${height}%` }}
-                    title={`${point.label}: ${formatValue(value, metricConfig.money)} ${metricConfig.valueLabel}`}
-                  />
-                </div>
-                <span className={showLabel ? "" : "is-muted"}>{showLabel ? point.label : ""}</span>
-              </div>
-            );
-          })}
+                return (
+                  <div className="analytics-bar-column" key={point.key}>
+                    <div
+                      className="analytics-bar"
+                      style={{ height: `${height}%` }}
+                      title={`${point.label}: ${formatValue(value, metricConfig.money)} ${metricConfig.valueLabel}`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="analytics-x-labels" aria-hidden="true">
+            {data.map((point, index) => {
+              const showLabel = period === "months" || index === 0 || index === data.length - 1 || index % 5 === 0;
+
+              return (
+                <span className={showLabel ? "" : "is-muted"} key={point.key}>
+                  {showLabel ? point.label : ""}
+                </span>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
