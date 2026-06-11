@@ -1,29 +1,12 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { useMemo, useState } from "react";
-
-function slugifyPreview(value: string) {
-  return (
-    value
-      .trim()
-      .toLowerCase()
-      .replace(/['"]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 48)
-      .replace(/-+$/g, "") || "your-cafe"
-  );
-}
+import { useState } from "react";
 
 export function CafeConsoleSetupForm({ ownerEmail }: { ownerEmail: string }) {
   const [cafeName, setCafeName] = useState("");
-  const [preferredSlug, setPreferredSlug] = useState("");
-  const [slugTouched, setSlugTouched] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const portalSlug = useMemo(() => slugifyPreview(cafeName), [cafeName]);
-  const visibleSlug = slugTouched ? preferredSlug : portalSlug;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -39,7 +22,6 @@ export function CafeConsoleSetupForm({ ownerEmail }: { ownerEmail: string }) {
         timezone: formData.get("timezone"),
         supportEmail: formData.get("supportEmail"),
         brandPrimaryColor: formData.get("brandPrimaryColor"),
-        preferredSlug: formData.get("preferredSlug") || portalSlug,
       }),
     });
     const payload = (await response.json().catch(() => ({}))) as { redirectTo?: string; error?: string };
@@ -75,34 +57,13 @@ export function CafeConsoleSetupForm({ ownerEmail }: { ownerEmail: string }) {
           <input
             name="cafeName"
             value={cafeName}
-            onChange={(event) => {
-              setCafeName(event.target.value);
-              if (!slugTouched) {
-                setPreferredSlug(slugifyPreview(event.target.value));
-              }
-            }}
+            onChange={(event) => setCafeName(event.target.value)}
             required
             minLength={2}
             maxLength={120}
             placeholder="Mockingbird Coffee"
           />
         </label>
-        <label className="form-field">
-          <span>Portal slug</span>
-          <input
-            name="preferredSlug"
-            value={visibleSlug}
-            onChange={(event) => {
-              setSlugTouched(true);
-              setPreferredSlug(slugifyPreview(event.target.value));
-            }}
-            placeholder={portalSlug}
-            pattern="[a-z0-9-]+"
-          />
-        </label>
-      </div>
-
-      <div className="signup-field-grid">
         <label className="form-field">
           <span>Timezone</span>
           <select name="timezone" defaultValue="America/Los_Angeles" required>
@@ -114,6 +75,9 @@ export function CafeConsoleSetupForm({ ownerEmail }: { ownerEmail: string }) {
             <option value="Pacific/Honolulu">Hawaii time</option>
           </select>
         </label>
+      </div>
+
+      <div className="signup-field-grid">
         <label className="form-field">
           <span>Support email</span>
           <input name="supportEmail" type="email" placeholder={ownerEmail} />

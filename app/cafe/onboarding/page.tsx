@@ -54,7 +54,7 @@ export default async function CafeOnboardingPage() {
               <span className="onboarding-step-number">1</span>
               <div>
                 <h2>Create the draft console</h2>
-                <p>Name the cafe, choose the portal URL, timezone, support email, and brand color.</p>
+                <p>Name the cafe, set the timezone, support email, and brand color.</p>
               </div>
             </div>
             <div>

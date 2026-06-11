@@ -62,7 +62,7 @@ export default function OpenGraphImage() {
               maxWidth: 840,
             }}
           >
-            Give every guest a free hour, then sell paid extensions through the UniFi network you already run.
+            Give every guest free access, then sell paid extensions through the UniFi network you already run.
           </div>
         </div>
       </div>

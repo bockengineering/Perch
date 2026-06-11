@@ -36,6 +36,11 @@ export default async function CaptivePortalPage({ params, searchParams }: PagePr
     notFound();
   }
 
+  const previewMode = Array.isArray(query.preview) ? query.preview[0] : query.preview;
+  if (previewMode === "payment") {
+    return <Paywall shop={shop} portalSessionId="preview" plans={shop.pricePlans} preview />;
+  }
+
   const sessionId = Array.isArray(query.session) ? query.session[0] : query.session;
   if (sessionId && !query.id) {
     const session = await prisma.portalSession.findUnique({ where: { id: sessionId } });

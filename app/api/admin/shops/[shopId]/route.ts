@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { actorFromRequest } from "@/lib/auth/basic";
 import {
   cafeActorFromSession,
@@ -8,21 +7,9 @@ import {
 } from "@/lib/auth/cafe-authorization";
 import { getPrisma } from "@/lib/db";
 import { logAudit } from "@/lib/services/audit";
+import { parseShopUpdatePayload } from "@/lib/services/shop-settings";
 
 export const dynamic = "force-dynamic";
-
-const updateShopSchema = z.object({
-  name: z.string().min(2).optional(),
-  timezone: z.string().min(3).optional(),
-  status: z.enum(["DRAFT", "ACTIVE", "PAUSED", "DISABLED"]).optional(),
-  freeMinutesPerDay: z.number().int().min(0).optional(),
-  checkoutGraceMinutes: z.number().int().min(1).optional(),
-  maxCheckoutGracePerDay: z.number().int().min(0).optional(),
-  platformFeeBps: z.number().int().min(0).max(10000).optional(),
-  brandLogoUrl: z.string().url().max(500).nullable().optional(),
-  brandPrimaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
-  supportEmail: z.string().email().nullable().optional(),
-});
 
 type RouteContext = {
   params: Promise<{ shopId: string }>;
@@ -52,7 +39,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Not authorized for this shop." }, { status: 403 });
   }
   const actor = cafeSession ? cafeActorFromSession(cafeSession) : actorFromRequest(request);
-  const parsed = updateShopSchema.safeParse(await request.json().catch(() => null));
+  const parsed = parseShopUpdatePayload(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid shop payload." }, { status: 400 });
   }

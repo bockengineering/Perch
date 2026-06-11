@@ -7,7 +7,7 @@ import {
   type Voucher,
   type VoucherRedemption,
 } from "@prisma/client";
-import { decryptSecret } from "@/lib/crypto/field-encryption";
+import { decryptSecret, encryptSecret } from "@/lib/crypto/field-encryption";
 import { getPrisma } from "@/lib/db";
 import { getNetworkProvider } from "@/lib/network/provider-factory";
 import { addMinutes } from "@/lib/utils/time";
@@ -62,6 +62,7 @@ export async function createVoucher(input: {
       shopId: input.shopId,
       label: input.label,
       codeHash: hashVoucherCode(plaintextCode),
+      codeCiphertext: encryptSecret(plaintextCode),
       durationMinutes: input.durationMinutes,
       maxRedemptions: input.maxRedemptions,
       expiresAt: input.expiresAt ?? undefined,
@@ -71,6 +72,32 @@ export async function createVoucher(input: {
   });
 
   return { voucher, plaintextCode };
+}
+
+export async function revealVoucherCode(input: {
+  shopId: string;
+  voucherId: string;
+}) {
+  const voucher = await getPrisma().voucher.findFirst({
+    where: {
+      id: input.voucherId,
+      shopId: input.shopId,
+    },
+    select: {
+      id: true,
+      codeCiphertext: true,
+    },
+  });
+
+  if (!voucher) {
+    return { ok: false, reason: "Voucher not found." };
+  }
+
+  if (!voucher.codeCiphertext) {
+    return { ok: false, reason: "This voucher was created before code reveal was available." };
+  }
+
+  return { ok: true, plaintextCode: decryptSecret(voucher.codeCiphertext) };
 }
 
 function voucherCanBeRedeemed(voucher: Voucher, now: Date) {

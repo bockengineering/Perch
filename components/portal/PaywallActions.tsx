@@ -20,15 +20,22 @@ function planButtonLabel(plan: Plan) {
 export function PaywallActions({
   portalSessionId,
   plans,
+  preview = false,
 }: {
   portalSessionId: string;
   plans: Plan[];
+  preview?: boolean;
 }) {
   const [voucherCode, setVoucherCode] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
 
   async function startCheckout(pricePlanId: string) {
+    if (preview) {
+      setMessage("Preview only. Guests buy passes from the Wi-Fi sign-in screen.");
+      return;
+    }
+
     setLoading(pricePlanId);
     setMessage(null);
     const response = await fetch("/api/portal/create-checkout-session", {
@@ -48,6 +55,11 @@ export function PaywallActions({
   }
 
   async function redeemVoucher() {
+    if (preview) {
+      setMessage("Preview only. Staff codes work from the Wi-Fi sign-in screen.");
+      return;
+    }
+
     if (!voucherCode.trim()) {
       setMessage("Enter a staff code.");
       return;
@@ -97,6 +109,7 @@ export function PaywallActions({
             onChange={(event) => setVoucherCode(event.target.value)}
             className="min-w-0 flex-1 rounded-md border border-[var(--border)] bg-white px-3 py-2 text-sm"
             autoComplete="one-time-code"
+            readOnly={preview}
           />
           <button
             type="button"

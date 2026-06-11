@@ -10,7 +10,7 @@ type MetricKey =
   | "paidPasses"
   | "freeGrants"
   | "portalVisits"
-  | "voucherRedemptions"
+  | "staffCodes"
   | "failedAuthorizations";
 
 const METRICS: Array<{ key: MetricKey; label: string; valueLabel: string; money?: boolean }> = [
@@ -19,7 +19,7 @@ const METRICS: Array<{ key: MetricKey; label: string; valueLabel: string; money?
   { key: "paidPasses", label: "Paid passes", valueLabel: "paid passes" },
   { key: "freeGrants", label: "Free grants", valueLabel: "free grants" },
   { key: "portalVisits", label: "Portal visits", valueLabel: "portal visits" },
-  { key: "voucherRedemptions", label: "Staff codes", valueLabel: "staff codes" },
+  { key: "staffCodes", label: "Staff codes", valueLabel: "staff codes" },
   { key: "failedAuthorizations", label: "Failed auths", valueLabel: "failed auths" },
 ];
 

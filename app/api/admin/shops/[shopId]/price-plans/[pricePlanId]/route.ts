@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth/cafe-authorization";
 import { getPrisma } from "@/lib/db";
 import { logAudit } from "@/lib/services/audit";
+import { parsePlanPriceToCents } from "@/lib/services/price-plans";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ const schema = z.object({
   label: z.string().min(2).optional(),
   durationMinutes: z.number().int().min(1).optional(),
   amountCents: z.number().int().min(50).optional(),
+  price: z.union([z.string(), z.number()]).optional(),
   currency: z.string().min(3).optional(),
   active: z.boolean().optional(),
   sortOrder: z.number().int().optional(),
@@ -35,13 +37,31 @@ export async function PATCH(request: Request, context: RouteContext) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid price plan payload." }, { status: 400 });
   }
+  const amountCents =
+    parsed.data.price === undefined ? parsed.data.amountCents : parsePlanPriceToCents(parsed.data.price);
+  if (amountCents === null) {
+    return NextResponse.json({ error: "Invalid price plan payload." }, { status: 400 });
+  }
+
+  const data: {
+    label?: string;
+    durationMinutes?: number;
+    amountCents?: number;
+    currency?: string;
+    active?: boolean;
+    sortOrder?: number;
+  } = {
+    label: parsed.data.label,
+    durationMinutes: parsed.data.durationMinutes,
+    amountCents,
+    currency: parsed.data.currency?.toLowerCase(),
+    active: parsed.data.active,
+    sortOrder: parsed.data.sortOrder,
+  };
 
   const pricePlan = await getPrisma().pricePlan.update({
     where: { id: pricePlanId, shopId },
-    data: {
-      ...parsed.data,
-      currency: parsed.data.currency?.toLowerCase(),
-    },
+    data,
   });
   await logAudit({ actor, shopId, action: "price_plan.update", entityType: "PricePlan", entityId: pricePlan.id });
 

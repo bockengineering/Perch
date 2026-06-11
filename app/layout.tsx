@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Perch",
-    description: "Automatic free guest Wi-Fi for coffee shops, with paid extensions after the daily free hour.",
+    description: "Automatic free guest Wi-Fi for coffee shops, with paid extensions after the daily free access period.",
     siteName: "Perch",
     type: "website",
     images: [
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Perch",
-    description: "Automatic free guest Wi-Fi for coffee shops, with paid extensions after the daily free hour.",
+    description: "Automatic free guest Wi-Fi for coffee shops, with paid extensions after the daily free access period.",
     images: ["/twitter-image"],
   },
 };

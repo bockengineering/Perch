@@ -50,7 +50,7 @@ export default async function PaymentReturnPage({ searchParams }: PageProps) {
   return (
     <main className="flex min-h-screen items-center justify-center px-5 py-10" style={shopAccentStyle(order?.shop.brandPrimaryColor)}>
       <section className="surface w-full max-w-md p-6">
-        {order?.shop ? <PortalBrand shop={order.shop} /> : <p className="text-sm font-semibold text-[var(--accent)]">Perch</p>}
+        <PortalBrand shop={order?.shop} />
         <h1 className="mt-3 text-2xl font-semibold">{title}</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">{body}</p>
         {order ? <PaymentReturnWatcher orderId={order.id} enabled={order.status !== "FAILED"} /> : null}

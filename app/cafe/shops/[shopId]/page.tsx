@@ -20,8 +20,10 @@ import { CafeAnalyticsChart } from "@/components/cafe/CafeAnalyticsChart";
 import { CafeSettingsForm } from "@/components/cafe/CafeSettingsForm";
 import { EmergencyFreeAccessControl } from "@/components/cafe/EmergencyFreeAccessControl";
 import { CafeMembersPanel } from "@/components/cafe/CafeMembersPanel";
+import { QuickStartWalkthrough } from "@/components/cafe/QuickStartWalkthrough";
 import { PricePlanForm } from "@/components/admin/PricePlanForm";
 import { UnifiSettingsForm } from "@/components/admin/UnifiSettingsForm";
+import { RecentVouchersList } from "@/components/staff/RecentVouchersList";
 import { VoucherCreateForm } from "@/components/staff/VoucherCreateForm";
 import {
   CAFE_SESSION_COOKIE_NAME,
@@ -61,15 +63,6 @@ function MetricCard({
 
 function money(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;
-}
-
-function formatTimeInZone(date: Date, timezone: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: timezone,
-    hour: "numeric",
-    minute: "2-digit",
-    timeZoneName: "short",
-  }).format(date);
 }
 
 function statusTone(status: string | boolean | null | undefined) {
@@ -128,7 +121,7 @@ function buildHostedPreviewAnalytics(): ShopAnalytics {
       grossRevenueCents,
       cafeShareCents: grossRevenueCents - platformFeeCents,
       platformFeeCents,
-      voucherRedemptions: 2 + ((index * 7) % 13),
+      staffCodes: 2 + ((index * 7) % 13),
       failedAuthorizations: index % 11 === 0 ? 1 : 0,
     };
   };
@@ -145,7 +138,7 @@ function buildHostedPreviewAnalytics(): ShopAnalytics {
         grossRevenueCents: point.grossRevenueCents * 26,
         cafeShareCents: point.cafeShareCents * 26,
         platformFeeCents: point.platformFeeCents * 26,
-        voucherRedemptions: point.voucherRedemptions * 24,
+        staffCodes: point.staffCodes * 24,
         failedAuthorizations: point.failedAuthorizations * 3,
       };
     }),
@@ -192,8 +185,8 @@ function HostedPreviewCafeConsole() {
       <section className="surface border-l-4 border-l-[var(--foreground)] p-4">
         <h2 className="text-lg font-semibold">Hosted preview mode</h2>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          This deployment is not connected to the live Postgres runtime yet, so forms are shown as a safe preview.
-          Once Vercel has `DATABASE_URL` and the Supabase server keys, this same screen becomes fully live.
+          This deployment is not connected to the live runtime yet, so forms are shown as a safe preview.
+          Once the production environment variables are configured, this same screen becomes fully live.
         </p>
       </section>
 
@@ -299,12 +292,8 @@ function HostedPreviewCafeConsole() {
               <strong>America/Los_Angeles</strong>
             </div>
             <div className="flex justify-between border-b border-[var(--border)] pb-2">
-              <span className="text-[var(--muted)]">Allowed SSID</span>
+              <span className="text-[var(--muted)]">Guest Wi-Fi</span>
               <strong>DemoGuest</strong>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[var(--muted)]">Checkout grace</span>
-              <strong>5 minutes</strong>
             </div>
           </div>
         </div>
@@ -387,11 +376,9 @@ export default async function CafeShopPage({ params }: PageProps) {
     freeGrantsToday,
     activeGrants,
     devicesSeenToday,
-    checkoutGraceToday,
     paidToday,
     revenueToday,
     voucherRedemptions,
-    failedAuths,
     thirtyDayRevenue,
     thirtyDayFreeGrants,
     transactions,
@@ -418,14 +405,12 @@ export default async function CafeShopPage({ params }: PageProps) {
       },
     }),
     prisma.device.count({ where: { shopId: shop.id, lastSeenAt: { gte: today } } }),
-    prisma.accessGrant.count({ where: { shopId: shop.id, type: "CHECKOUT_GRACE", createdAt: { gte: today } } }),
     prisma.order.count({ where: { shopId: shop.id, paidAt: { gte: today } } }),
     prisma.order.aggregate({
       where: { shopId: shop.id, paidAt: { gte: today }, status: { in: ["PAID", "AUTHORIZED"] } },
       _sum: { amountCents: true, platformFeeCents: true },
     }),
     prisma.voucherRedemption.count({ where: { shopId: shop.id, redeemedAt: { gte: today } } }),
-    prisma.accessGrant.count({ where: { shopId: shop.id, status: "FAILED", createdAt: { gte: today } } }),
     prisma.order.aggregate({
       where: {
         shopId: shop.id,
@@ -466,6 +451,15 @@ export default async function CafeShopPage({ params }: PageProps) {
       where: { shopId: shop.id },
       orderBy: { createdAt: "desc" },
       take: 8,
+      select: {
+        id: true,
+        label: true,
+        status: true,
+        durationMinutes: true,
+        redeemedCount: true,
+        maxRedemptions: true,
+        codeCiphertext: true,
+      },
     }),
     prisma.voucherRedemption.findMany({
       where: { shopId: shop.id },
@@ -505,6 +499,8 @@ export default async function CafeShopPage({ params }: PageProps) {
   const staffCount = members.filter((member) => member.role === "STAFF").length;
   const stripeStatus = shop.stripeChargesEnabled && shop.stripePayoutsEnabled ? "CONNECTED" : "INCOMPLETE";
   const unifiStatus = shop.unifiIntegration?.connectionStatus ?? "UNTESTED";
+  const hasUnifiDetails = Boolean(shop.unifiIntegration?.apiBaseUrl && shop.unifiIntegration?.siteId);
+  const hasAllowedSsids = Boolean(shop.unifiIntegration?.allowedSsids.length);
   const emergencyFreeActive = Boolean(shop.emergencyFreeUntil && shop.emergencyFreeUntil > now);
   const localDateLabel = new Intl.DateTimeFormat("en-US", {
     timeZone: shop.timezone,
@@ -519,6 +515,45 @@ export default async function CafeShopPage({ params }: PageProps) {
     { label: "Paid plans configured", complete: shop.pricePlans.some((plan) => plan.active), detail: `${shop.pricePlans.length} plans` },
     { label: "Support email set", complete: Boolean(shop.supportEmail), detail: shop.supportEmail ?? "Missing" },
     { label: "Staff access ready", complete: members.length > 0, detail: `${ownerCount} owner / ${staffCount} staff` },
+  ];
+  const quickStartSteps = [
+    {
+      id: "wifi-details",
+      step: "1",
+      title: "Add Wi-Fi system details",
+      detail: "Enter the UniFi web address and access key for this cafe.",
+      complete: hasUnifiDetails,
+      action: "Open Wi-Fi setup",
+      href: "#unifi-integration",
+    },
+    {
+      id: "guest-wifi",
+      step: "2",
+      title: "Choose guest Wi-Fi",
+      detail: "List the Wi-Fi network names customers see on their phones.",
+      complete: hasAllowedSsids,
+      action: "Add Wi-Fi names",
+      href: "#unifi-integration",
+    },
+    {
+      id: "connection-check",
+      step: "3",
+      title: "Check the connection",
+      detail: "Press Check connection. If it passes, save the Wi-Fi setup.",
+      complete: unifiStatus === "CONNECTED",
+      action: "Check connection",
+      href: "#unifi-integration",
+    },
+    {
+      id: "guest-preview",
+      step: "4",
+      title: "Preview and go live",
+      detail: "Open the guest page, then make the cafe active when everything looks right.",
+      complete: shop.status === "ACTIVE",
+      action: "Preview guest page",
+      href: `/p/${shop.slug}?preview=payment`,
+      external: true,
+    },
   ];
 
   return (
@@ -578,6 +613,10 @@ export default async function CafeShopPage({ params }: PageProps) {
         </div>
       </header>
 
+      {isOwner ? (
+        <QuickStartWalkthrough shopId={shop.id} steps={quickStartSteps} />
+      ) : null}
+
       <section className="grid gap-3">
         <div className="dashboard-section-heading">
           <div>
@@ -593,20 +632,12 @@ export default async function CafeShopPage({ params }: PageProps) {
           <MetricCard label="Devices seen today" value={devicesSeenToday} detail="Hashed device identity" />
           {isOwner ? (
             <>
-              <MetricCard
-                label="Emergency free"
-                value={emergencyFreeActive ? "On" : "Off"}
-                detail={emergencyFreeActive && shop.emergencyFreeUntil ? `Until ${formatTimeInZone(shop.emergencyFreeUntil, shop.timezone)}` : "Owner-controlled override"}
-                tone={emergencyFreeActive ? "warning" : "neutral"}
-              />
               <MetricCard label="Paid passes today" value={paidToday} detail={`${transactions.length} recent orders loaded`} />
               <MetricCard label="Gross today" value={money(grossToday)} detail={`${money(thirtyDayGross)} in 30 days`} tone="success" />
               <MetricCard label="Cafe share today" value={money(cafeShareToday)} detail={`${money(thirtyDayShare)} in 30 days`} />
-              <MetricCard label="Checkout grace" value={checkoutGraceToday} detail="Temporary Stripe access grants" />
             </>
           ) : null}
           <MetricCard label="Voucher uses today" value={voucherRedemptions} detail="Staff-code redemptions" />
-          <MetricCard label="Failed auths today" value={failedAuths} detail="Needs staff attention" tone={failedAuths > 0 ? "danger" : "neutral"} />
         </div>
       </section>
 
@@ -713,7 +744,7 @@ export default async function CafeShopPage({ params }: PageProps) {
         )}
 
         <div className="surface grid gap-4 p-4">
-          <SectionTitle icon={Ticket} title="Create staff code" detail="Show the generated plaintext code once, then hand it to the guest." />
+          <SectionTitle icon={Ticket} title="Create staff code" detail="Generate a staff code for one guest or a batch of repeat uses." />
           <VoucherCreateForm shopId={shop.id} framed={false} />
         </div>
       </section>
@@ -721,8 +752,8 @@ export default async function CafeShopPage({ params }: PageProps) {
       {isOwner ? (
         <>
           <section className="grid gap-4">
-            <div className="surface grid gap-4 p-4">
-              <SectionTitle icon={PlugZap} title="UniFi integration" detail="Connect the cafe controller, choose a site, and restrict Perch to guest SSIDs." />
+            <div id="unifi-integration" className="surface grid gap-4 p-4">
+              <SectionTitle icon={PlugZap} title="Wi-Fi setup" detail="Connect UniFi, choose the cafe site, and list the guest Wi-Fi names Perch should manage." />
               <UnifiSettingsForm
                 shopId={shop.id}
                 defaults={{
@@ -759,17 +790,16 @@ export default async function CafeShopPage({ params }: PageProps) {
           </section>
 
           <section className="grid gap-4">
-            <div className="surface grid gap-4 p-4">
+            <div id="cafe-settings" className="surface grid gap-4 p-4">
               <SectionTitle icon={Settings} title="Cafe settings" detail="Control the public policy guests experience at this location." />
               <CafeSettingsForm
                 shop={{
                   id: shop.id,
                   name: shop.name,
+                  slug: shop.slug,
                   timezone: shop.timezone,
                   status: shop.status,
                   freeMinutesPerDay: shop.freeMinutesPerDay,
-                  checkoutGraceMinutes: shop.checkoutGraceMinutes,
-                  maxCheckoutGracePerDay: shop.maxCheckoutGracePerDay,
                   supportEmail: shop.supportEmail,
                   brandLogoUrl: shop.brandLogoUrl,
                   brandPrimaryColor: shop.brandPrimaryColor,
@@ -789,12 +819,15 @@ export default async function CafeShopPage({ params }: PageProps) {
 
           <CafeMembersPanel
             shopId={shop.id}
-            supabaseAdminConfigured={isSupabaseAdminConfigured()}
+            accountProvisioningConfigured={isSupabaseAdminConfigured()}
             members={members.map((member) => ({
               id: member.id,
               role: member.role,
               user: {
-                ...member.user,
+                id: member.user.id,
+                email: member.user.email,
+                name: member.user.name,
+                loginReady: Boolean(member.user.supabaseUserId),
                 lastLoginAt: member.user.lastLoginAt?.toISOString() ?? null,
               },
             }))}
@@ -856,20 +889,18 @@ export default async function CafeShopPage({ params }: PageProps) {
                 </div>
                 <div>
                   <h3 className="font-semibold">Recent vouchers</h3>
-                  <div className="mt-2 grid gap-2">
-                    {recentVouchers.map((voucher) => (
-                      <div key={voucher.id} className="flex items-center justify-between border-b border-[var(--border)] py-2 text-sm last:border-0">
-                        <span>
-                          <strong>{voucher.label}</strong>
-                          <span className="text-[var(--muted)]"> / {voucher.durationMinutes} min</span>
-                        </span>
-                        <span className="text-[var(--muted)]">
-                          {voucher.redeemedCount}/{voucher.maxRedemptions}
-                        </span>
-                      </div>
-                    ))}
-                    {recentVouchers.length === 0 ? <p className="text-sm text-[var(--muted)]">No vouchers created yet.</p> : null}
-                  </div>
+                  <RecentVouchersList
+                    shopId={shop.id}
+                    vouchers={recentVouchers.map((voucher) => ({
+                      id: voucher.id,
+                      label: voucher.label,
+                      status: voucher.status,
+                      durationMinutes: voucher.durationMinutes,
+                      redeemedCount: voucher.redeemedCount,
+                      maxRedemptions: voucher.maxRedemptions,
+                      codeAvailable: Boolean(voucher.codeCiphertext),
+                    }))}
+                  />
                 </div>
               </div>
             </div>
@@ -879,8 +910,8 @@ export default async function CafeShopPage({ params }: PageProps) {
             <SectionTitle icon={LifeBuoy} title="Support snapshot" detail="What staff should check first if a guest says Wi-Fi is not connecting." />
             <div className="grid gap-3 md:grid-cols-3">
               <div>
-                <p className="text-sm text-[var(--muted)]">Allowed SSIDs</p>
-                <p className="mt-2 font-semibold">{shop.unifiIntegration?.allowedSsids.join(", ") || "All guest SSIDs"}</p>
+                <p className="text-sm text-[var(--muted)]">Guest Wi-Fi names</p>
+                <p className="mt-2 font-semibold">{shop.unifiIntegration?.allowedSsids.join(", ") || "All guest Wi-Fi names"}</p>
               </div>
               <div>
                 <p className="text-sm text-[var(--muted)]">Free reset</p>

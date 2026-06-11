@@ -41,7 +41,7 @@ export default async function CafeHomePage() {
           {shops.length === 0 ? "No cafes are assigned to this account." : "Choose a cafe."}
         </h1>
         {shops.length === 0 ? (
-          <p className="mt-3 text-sm text-[var(--muted)]">Ask a platform admin to add this Supabase user to a cafe.</p>
+          <p className="mt-3 text-sm text-[var(--muted)]">Ask a platform admin to add this account to a cafe.</p>
         ) : (
           <div className="mt-6 grid gap-3">
             {shops.map((shop) => (

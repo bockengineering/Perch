@@ -109,8 +109,8 @@ model Shop {
   freeMinutesPerDay        Int           @default(60)
   freeResetType            FreeResetType @default(DAILY)
   freeResetHour            Int           @default(0)
-  checkoutGraceMinutes     Int           @default(5)
-  maxCheckoutGracePerDay   Int           @default(2)
+  checkoutGraceMinutes     Int           @default(10)
+  maxCheckoutGracePerDay   Int           @default(20)
   platformFeeBps           Int           @default(5000)
   stripeConnectedAccountId String?
   stripeChargesEnabled     Boolean       @default(false)
@@ -300,6 +300,7 @@ model Voucher {
   shopId          String
   label           String
   codeHash        String
+  codeCiphertext  String?
   durationMinutes Int
   maxRedemptions  Int
   redeemedCount   Int           @default(0)

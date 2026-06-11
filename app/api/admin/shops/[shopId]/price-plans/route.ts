@@ -8,13 +8,15 @@ import {
 } from "@/lib/auth/cafe-authorization";
 import { getPrisma } from "@/lib/db";
 import { logAudit } from "@/lib/services/audit";
+import { parsePlanPriceToCents } from "@/lib/services/price-plans";
 
 export const dynamic = "force-dynamic";
 
 const schema = z.object({
   label: z.string().min(2),
   durationMinutes: z.number().int().min(1),
-  amountCents: z.number().int().min(50),
+  amountCents: z.number().int().min(50).optional(),
+  price: z.union([z.string(), z.number()]).optional(),
   currency: z.string().min(3).default("usd"),
 });
 
@@ -46,12 +48,19 @@ export async function POST(request: Request, context: RouteContext) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid price plan payload." }, { status: 400 });
   }
+  const amountCents =
+    parsed.data.price === undefined ? (parsed.data.amountCents ?? null) : parsePlanPriceToCents(parsed.data.price);
+  if (amountCents === null) {
+    return NextResponse.json({ error: "Invalid price plan payload." }, { status: 400 });
+  }
 
   const sortOrder = await getPrisma().pricePlan.count({ where: { shopId } });
   const pricePlan = await getPrisma().pricePlan.create({
     data: {
-      ...parsed.data,
       shopId,
+      label: parsed.data.label,
+      durationMinutes: parsed.data.durationMinutes,
+      amountCents,
       currency: parsed.data.currency.toLowerCase(),
       sortOrder: sortOrder + 1,
     },

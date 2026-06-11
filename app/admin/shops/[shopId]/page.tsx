@@ -8,6 +8,7 @@ import { CafeAnalyticsChart } from "@/components/cafe/CafeAnalyticsChart";
 import { CafeMembersPanel } from "@/components/cafe/CafeMembersPanel";
 import { CafeSettingsForm } from "@/components/cafe/CafeSettingsForm";
 import { EmergencyFreeAccessControl } from "@/components/cafe/EmergencyFreeAccessControl";
+import { RecentVouchersList } from "@/components/staff/RecentVouchersList";
 import { VoucherCreateForm } from "@/components/staff/VoucherCreateForm";
 import { getPrisma } from "@/lib/db";
 import { getShopAnalytics } from "@/lib/services/shop-analytics";
@@ -170,6 +171,15 @@ export default async function ShopDetailPage({ params }: PageProps) {
       where: { shopId: shop.id },
       orderBy: { createdAt: "desc" },
       take: 8,
+      select: {
+        id: true,
+        label: true,
+        status: true,
+        durationMinutes: true,
+        redeemedCount: true,
+        maxRedemptions: true,
+        codeCiphertext: true,
+      },
     }),
     getShopAnalytics({ id: shop.id, timezone: shop.timezone }),
   ]);
@@ -261,11 +271,10 @@ export default async function ShopDetailPage({ params }: PageProps) {
             shop={{
               id: shop.id,
               name: shop.name,
+              slug: shop.slug,
               timezone: shop.timezone,
               status: shop.status,
               freeMinutesPerDay: shop.freeMinutesPerDay,
-              checkoutGraceMinutes: shop.checkoutGraceMinutes,
-              maxCheckoutGracePerDay: shop.maxCheckoutGracePerDay,
               platformFeeBps: shop.platformFeeBps,
               supportEmail: shop.supportEmail,
               brandLogoUrl: shop.brandLogoUrl,
@@ -328,12 +337,15 @@ export default async function ShopDetailPage({ params }: PageProps) {
 
       <CafeMembersPanel
         shopId={shop.id}
-        supabaseAdminConfigured={isSupabaseAdminConfigured()}
+        accountProvisioningConfigured={isSupabaseAdminConfigured()}
         members={members.map((member) => ({
           id: member.id,
           role: member.role,
           user: {
-            ...member.user,
+            id: member.user.id,
+            email: member.user.email,
+            name: member.user.name,
+            loginReady: Boolean(member.user.supabaseUserId),
             lastLoginAt: member.user.lastLoginAt?.toISOString() ?? null,
           },
         }))}
@@ -341,7 +353,7 @@ export default async function ShopDetailPage({ params }: PageProps) {
 
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="surface grid gap-4 p-4">
-          <SectionTitle icon={Users} title="Create voucher" detail="Generate a staff code. The plaintext code is shown once, then only a hash is stored." />
+          <SectionTitle icon={Users} title="Create voucher" detail="Generate a staff code for one guest or a batch of repeat uses." />
           <VoucherCreateForm shopId={shop.id} framed={false} />
         </div>
 
@@ -454,39 +466,21 @@ export default async function ShopDetailPage({ params }: PageProps) {
 
         <div className="surface overflow-hidden">
           <div className="p-4">
-            <SectionTitle icon={Users} title="Recent vouchers" detail="Codes are stored as hashes; plaintext appears only at creation." />
+            <SectionTitle icon={Users} title="Recent vouchers" detail="Reveal saved staff codes without changing their remaining uses." />
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left text-sm">
-              <thead className="bg-[var(--panel-strong)]">
-                <tr>
-                  <th className="p-3 font-semibold">Label</th>
-                  <th className="p-3 font-semibold">Status</th>
-                  <th className="p-3 font-semibold">Uses</th>
-                  <th className="p-3 font-semibold">Minutes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentVouchers.map((voucher) => (
-                  <tr key={voucher.id} className="border-t border-[var(--border)]">
-                    <td className="p-3 font-semibold">{voucher.label}</td>
-                    <td className="p-3">{voucher.status}</td>
-                    <td className="p-3">
-                      {voucher.redeemedCount}/{voucher.maxRedemptions}
-                    </td>
-                    <td className="p-3">{voucher.durationMinutes}</td>
-                  </tr>
-                ))}
-                {recentVouchers.length === 0 ? (
-                  <tr>
-                    <td className="p-3 text-[var(--muted)]" colSpan={4}>
-                      No vouchers created yet.
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
+          <RecentVouchersList
+            shopId={shop.id}
+            table
+            vouchers={recentVouchers.map((voucher) => ({
+              id: voucher.id,
+              label: voucher.label,
+              status: voucher.status,
+              durationMinutes: voucher.durationMinutes,
+              redeemedCount: voucher.redeemedCount,
+              maxRedemptions: voucher.maxRedemptions,
+              codeAvailable: Boolean(voucher.codeCiphertext),
+            }))}
+          />
         </div>
       </section>
     </main>

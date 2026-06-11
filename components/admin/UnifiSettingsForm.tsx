@@ -60,51 +60,70 @@ export function UnifiSettingsForm({
     <form className="grid gap-3">
       <div className="grid gap-1">
         <label className="text-sm font-medium" htmlFor="apiBaseUrl">
-          API base URL
+          UniFi web address
         </label>
         <input
           id="apiBaseUrl"
           name="apiBaseUrl"
+          aria-describedby="apiBaseUrl-help"
           defaultValue={defaults.apiBaseUrl}
           className="rounded-md border border-[var(--border)] px-3 py-2 text-sm"
+          placeholder="https://unifi.example.com"
           required
         />
+        <p id="apiBaseUrl-help" className="text-xs text-[var(--muted)]">
+          This is the web address for the cafe&apos;s UniFi Network app.
+        </p>
       </div>
       <div className="grid gap-1">
         <label className="text-sm font-medium" htmlFor="apiKey">
-          API key
+          UniFi access key
         </label>
         <input
           id="apiKey"
           name="apiKey"
           type="password"
-          placeholder={defaults.apiBaseUrl ? "Leave blank to keep the saved key" : "Paste UniFi API key"}
+          aria-describedby="apiKey-help"
+          placeholder={defaults.apiBaseUrl ? "Leave blank to keep the saved key" : "Paste UniFi access key"}
           className="rounded-md border border-[var(--border)] px-3 py-2 text-sm"
         />
+        <p id="apiKey-help" className="text-xs text-[var(--muted)]">
+          Perch uses this to approve guests on the Wi-Fi network.
+        </p>
       </div>
       <div className="grid gap-1">
         <label className="text-sm font-medium" htmlFor="siteId">
-          Site ID
+          UniFi site
         </label>
         <input
           id="siteId"
           name="siteId"
+          aria-describedby="siteId-help"
           defaultValue={defaults.siteId}
           className="rounded-md border border-[var(--border)] px-3 py-2 text-sm"
+          placeholder="default"
           required
         />
+        <p id="siteId-help" className="text-xs text-[var(--muted)]">
+          Use the site for this cafe. Many UniFi accounts use default.
+        </p>
       </div>
       <input name="siteName" type="hidden" defaultValue={sites[0]?.name ?? defaults.siteId} />
       <div className="grid gap-1">
         <label className="text-sm font-medium" htmlFor="allowedSsids">
-          Allowed guest SSIDs
+          Guest Wi-Fi names
         </label>
         <input
           id="allowedSsids"
           name="allowedSsids"
+          aria-describedby="allowedSsids-help"
           defaultValue={(defaults.allowedSsids ?? []).join(", ")}
           className="rounded-md border border-[var(--border)] px-3 py-2 text-sm"
+          placeholder="Guest WiFi, Patio WiFi"
         />
+        <p id="allowedSsids-help" className="text-xs text-[var(--muted)]">
+          Enter the network names customers see. Use commas for more than one.
+        </p>
       </div>
       <div className="flex flex-wrap gap-2">
         <button
@@ -113,7 +132,7 @@ export function UnifiSettingsForm({
           className="inline-flex items-center gap-2 rounded-md border border-[var(--border)] px-3 py-2 text-sm font-semibold"
         >
           <Wifi size={16} />
-          Test
+          Check connection
         </button>
         <button
           type="button"
@@ -123,7 +142,7 @@ export function UnifiSettingsForm({
           Save
         </button>
       </div>
-      {message ? <p className="text-sm text-[var(--muted)]">{message}</p> : null}
+      {message ? <p className="text-sm text-[var(--muted)]" role="status">{message}</p> : null}
     </form>
   );
 }

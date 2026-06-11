@@ -14,7 +14,7 @@ export function ErrorScreen({
     <main className="portal-page" style={shopAccentStyle(shop?.brandPrimaryColor)}>
       <section className="portal-card surface">
         <div className="portal-card-top">
-          {shop ? <PortalBrand shop={shop} /> : <span className="portal-brand-name">Perch</span>}
+          <PortalBrand shop={shop} />
           <span className="portal-state-pill">Connection issue</span>
         </div>
         <p className="portal-eyebrow">Guest Wi-Fi</p>

@@ -19,10 +19,15 @@ const createMemberSchema = z
     name: z.string().min(1).nullable().optional(),
     role: z.enum(["SHOP_OWNER", "STAFF"]).default("STAFF"),
     password: z.string().min(8).optional(),
-    createSupabaseUser: z.boolean().default(true),
+    createPortalLogin: z.boolean().optional(),
+    createSupabaseUser: z.boolean().optional(),
   })
-  .refine((value) => !value.createSupabaseUser || Boolean(value.password), {
-    message: "A password is required when creating a Supabase user.",
+  .transform((value) => ({
+    ...value,
+    createLoginUser: value.createPortalLogin ?? value.createSupabaseUser ?? true,
+  }))
+  .refine((value) => !value.createLoginUser || Boolean(value.password), {
+    message: "A password is required when creating a portal login.",
     path: ["password"],
   });
 
@@ -59,7 +64,7 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   let supabaseUserId: string | null = null;
-  if (parsed.data.createSupabaseUser && isSupabaseAdminConfigured()) {
+  if (parsed.data.createLoginUser && isSupabaseAdminConfigured()) {
     const supabaseUser = await createSupabaseCafeUser({
       email: parsed.data.email,
       password: parsed.data.password,

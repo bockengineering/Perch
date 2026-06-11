@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { perchWordmarkHref } from "@/components/BrandWordmark";
 
 export type PortalBrandShop = {
   name: string;
@@ -12,26 +13,26 @@ export function shopAccentStyle(color: string | null | undefined): CSSProperties
   } as CSSProperties;
 }
 
+const fallbackLogoUrl = perchWordmarkHref;
+
 function logoBackgroundStyle(url: string): CSSProperties {
   return {
     backgroundImage: `url(${JSON.stringify(url)})`,
   };
 }
 
-export function PortalBrand({ shop }: { shop: PortalBrandShop }) {
+export function PortalBrand({ shop }: { shop?: PortalBrandShop | null }) {
+  const logoUrl = shop?.brandLogoUrl ?? fallbackLogoUrl;
+  const label = shop?.brandLogoUrl ? `${shop.name} logo` : "Perch logo";
+
   return (
     <div className="portal-brand">
-      {shop.brandLogoUrl ? (
-        <span
-          className="portal-brand-logo"
-          role="img"
-          aria-label={`${shop.name} logo`}
-          style={logoBackgroundStyle(shop.brandLogoUrl)}
-        />
-      ) : (
-        <span className="portal-brand-dot" aria-hidden="true" />
-      )}
-      <span className="portal-brand-name">{shop.name}</span>
+      <span
+        className={`portal-brand-logo${shop?.brandLogoUrl ? "" : " portal-brand-logo-fallback"}`}
+        role="img"
+        aria-label={label}
+        style={logoBackgroundStyle(logoUrl)}
+      />
     </div>
   );
 }

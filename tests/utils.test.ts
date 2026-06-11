@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { normalizeMac, hashMac } from "@/lib/crypto/mac";
+import { decryptSecret, encryptSecret } from "@/lib/crypto/field-encryption";
 import { safeRedirectUrl } from "@/lib/utils/redirect";
 import { getNextLocalMidnight, getShopLocalDate } from "@/lib/utils/time";
 import { hashVoucherCode, normalizeVoucherCode } from "@/lib/services/vouchers";
@@ -8,6 +9,7 @@ import { emergencyFreeMinutesRemaining, isEmergencyFreeActive } from "@/lib/serv
 import { analyticsDayKey, analyticsMonthKey } from "@/lib/services/shop-analytics";
 import { stripeConnectedAccountController } from "@/lib/services/payments";
 import { applyDatabaseUrlAlias, databaseUrl } from "@/lib/env";
+import { formatPlanPriceInput, parsePlanPriceToCents } from "@/lib/services/price-plans";
 import {
   createCafeSessionCookie,
   isCafeLoginValid,
@@ -23,6 +25,7 @@ import {
 import { isDemoCafeLogin } from "@/lib/auth/hosted-preview";
 import { isSupabaseAdminConfigured, isSupabaseAuthConfigured } from "@/lib/auth/supabase";
 import { defaultPricePlanCreateData, slugifyCafeName } from "@/lib/services/cafe-signup";
+import { parseShopUpdatePayload } from "@/lib/services/shop-settings";
 
 describe("MAC utilities", () => {
   it("normalizes common MAC address formats", () => {
@@ -100,6 +103,24 @@ describe("redirects and voucher hashing", () => {
     assert.equal(normalizeVoucherCode(" perch-1234 "), "PERCH1234");
     assert.equal(hashVoucherCode("perch-1234"), hashVoucherCode("PERCH1234"));
     assert.equal(hashVoucherCode("perch-1234").includes("PERCH1234"), false);
+  });
+
+  it("encrypts saved voucher codes for repeat reveal", () => {
+    const originalKey = process.env.FIELD_ENCRYPTION_KEY;
+    process.env.FIELD_ENCRYPTION_KEY = "1".repeat(64);
+
+    try {
+      const code = "PERCH-2345-ABCD";
+      const encrypted = encryptSecret(code);
+      assert.equal(encrypted.includes(code), false);
+      assert.equal(decryptSecret(encrypted), code);
+    } finally {
+      if (originalKey === undefined) {
+        delete process.env.FIELD_ENCRYPTION_KEY;
+      } else {
+        process.env.FIELD_ENCRYPTION_KEY = originalKey;
+      }
+    }
   });
 });
 
@@ -256,6 +277,37 @@ describe("cafe signup helpers", () => {
         { label: "All day", durationMinutes: 720, amountCents: 800 },
       ],
     );
+  });
+});
+
+describe("price plan helpers", () => {
+  it("parses dollar price inputs into cents", () => {
+    assert.equal(parsePlanPriceToCents("4"), 400);
+    assert.equal(parsePlanPriceToCents("4.5"), 450);
+    assert.equal(parsePlanPriceToCents("4.50"), 450);
+    assert.equal(formatPlanPriceInput(450), "4.50");
+  });
+
+  it("rejects invalid or too-small plan prices", () => {
+    assert.equal(parsePlanPriceToCents("4.567"), null);
+    assert.equal(parsePlanPriceToCents("0.49"), null);
+    assert.equal(parsePlanPriceToCents("free"), null);
+  });
+});
+
+describe("shop settings", () => {
+  it("accepts remote and uploaded logo values", () => {
+    const uploadedLogo = `data:image/png;base64,${Buffer.from("logo").toString("base64")}`;
+
+    assert.equal(parseShopUpdatePayload({ brandLogoUrl: "https://example.com/logo.svg" }).success, true);
+    assert.equal(parseShopUpdatePayload({ brandLogoUrl: uploadedLogo }).success, true);
+    assert.equal(parseShopUpdatePayload({ brandLogoUrl: null }).success, true);
+  });
+
+  it("rejects unsupported embedded logo types", () => {
+    const svgLogo = `data:image/svg+xml;base64,${Buffer.from("<svg />").toString("base64")}`;
+
+    assert.equal(parseShopUpdatePayload({ brandLogoUrl: svgLogo }).success, false);
   });
 });
 

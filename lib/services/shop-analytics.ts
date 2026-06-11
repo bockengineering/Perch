@@ -9,7 +9,7 @@ export type ShopAnalyticsPoint = {
   grossRevenueCents: number;
   cafeShareCents: number;
   platformFeeCents: number;
-  voucherRedemptions: number;
+  staffCodes: number;
   failedAuthorizations: number;
 };
 
@@ -85,7 +85,7 @@ function emptyPoint(key: string, label: string): ShopAnalyticsPoint {
     grossRevenueCents: 0,
     cafeShareCents: 0,
     platformFeeCents: 0,
-    voucherRedemptions: 0,
+    staffCodes: 0,
     failedAuthorizations: 0,
   };
 }
@@ -135,7 +135,7 @@ export async function getShopAnalytics(shop: ShopAnalyticsInput, now = new Date(
   const monthBuckets = new Map(months.map((point) => [point.key, point]));
   const windowStart = new Date(now.getTime() - 400 * 24 * 60 * 60 * 1000);
 
-  const [portalSessions, accessGrants, paidOrders, voucherRedemptions] = await Promise.all([
+  const [portalSessions, accessGrants, paidOrders, staffCodes] = await Promise.all([
     prisma.portalSession.findMany({
       where: { shopId: shop.id, createdAt: { gte: windowStart } },
       select: { createdAt: true },
@@ -152,9 +152,9 @@ export async function getShopAnalytics(shop: ShopAnalyticsInput, now = new Date(
       },
       select: { paidAt: true, amountCents: true, platformFeeCents: true },
     }),
-    prisma.voucherRedemption.findMany({
-      where: { shopId: shop.id, redeemedAt: { gte: windowStart } },
-      select: { redeemedAt: true },
+    prisma.voucher.findMany({
+      where: { shopId: shop.id, createdAt: { gte: windowStart } },
+      select: { createdAt: true },
     }),
   ]);
 
@@ -196,9 +196,9 @@ export async function getShopAnalytics(shop: ShopAnalyticsInput, now = new Date(
     });
   }
 
-  for (const redemption of voucherRedemptions) {
-    applyDate(redemption.redeemedAt, (point) => {
-      point.voucherRedemptions += 1;
+  for (const staffCode of staffCodes) {
+    applyDate(staffCode.createdAt, (point) => {
+      point.staffCodes += 1;
     });
   }
 

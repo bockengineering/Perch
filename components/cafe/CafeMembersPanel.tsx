@@ -10,7 +10,7 @@ type CafeMember = {
     id: string;
     email: string;
     name: string | null;
-    supabaseUserId: string | null;
+    loginReady: boolean;
     lastLoginAt: string | null;
   };
 };
@@ -18,15 +18,15 @@ type CafeMember = {
 type CafeMembersPanelProps = {
   shopId: string;
   members: CafeMember[];
-  supabaseAdminConfigured: boolean;
+  accountProvisioningConfigured: boolean;
 };
 
-export function CafeMembersPanel({ shopId, members, supabaseAdminConfigured }: CafeMembersPanelProps) {
+export function CafeMembersPanel({ shopId, members, accountProvisioningConfigured }: CafeMembersPanelProps) {
   const [message, setMessage] = useState<string | null>(null);
 
   async function submit(formData: FormData) {
     setMessage(null);
-    const createSupabaseUser = formData.get("createSupabaseUser") === "on";
+    const createPortalLogin = formData.get("createPortalLogin") === "on";
     const response = await fetch(`/api/admin/shops/${shopId}/members`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -35,7 +35,7 @@ export function CafeMembersPanel({ shopId, members, supabaseAdminConfigured }: C
         name: formData.get("name") || null,
         role: formData.get("role"),
         password: formData.get("password") || undefined,
-        createSupabaseUser,
+        createPortalLogin,
       }),
     });
 
@@ -54,9 +54,7 @@ export function CafeMembersPanel({ shopId, members, supabaseAdminConfigured }: C
         <ShieldCheck size={18} />
         <div>
           <h2 className="text-xl font-semibold">Cafe accounts</h2>
-          <p className="text-sm text-[var(--muted)]">
-            Supabase Auth handles credentials. Perch controls which cafe each account can access.
-          </p>
+          <p className="text-sm text-[var(--muted)]">Manage who can access this cafe console.</p>
         </div>
       </div>
 
@@ -66,7 +64,7 @@ export function CafeMembersPanel({ shopId, members, supabaseAdminConfigured }: C
             <tr>
               <th className="p-3 font-semibold">User</th>
               <th className="p-3 font-semibold">Role</th>
-              <th className="p-3 font-semibold">Supabase</th>
+              <th className="p-3 font-semibold">Login</th>
               <th className="p-3 font-semibold">Last login</th>
             </tr>
           </thead>
@@ -78,7 +76,7 @@ export function CafeMembersPanel({ shopId, members, supabaseAdminConfigured }: C
                   <p className="text-[var(--muted)]">{member.user.email}</p>
                 </td>
                 <td className="p-3">{member.role}</td>
-                <td className="p-3">{member.user.supabaseUserId ? "LINKED" : "LOCAL ONLY"}</td>
+                <td className="p-3">{member.user.loginReady ? "READY" : "LOCAL ONLY"}</td>
                 <td className="p-3 text-[var(--muted)]">
                   {member.user.lastLoginAt ? new Date(member.user.lastLoginAt).toLocaleString() : "Never"}
                 </td>
@@ -131,24 +129,24 @@ export function CafeMembersPanel({ shopId, members, supabaseAdminConfigured }: C
               type="password"
               minLength={8}
               className="rounded-md border border-[var(--border)] px-3 py-2 font-normal"
-              placeholder={supabaseAdminConfigured ? "Required for new Supabase users" : "Local review mode only"}
+              placeholder={accountProvisioningConfigured ? "Required for new portal logins" : "Local review mode only"}
             />
           </label>
           <label className="flex items-center gap-2 text-sm font-medium">
             <input
-              name="createSupabaseUser"
+              name="createPortalLogin"
               type="checkbox"
-              defaultChecked={supabaseAdminConfigured}
-              disabled={!supabaseAdminConfigured}
+              defaultChecked={accountProvisioningConfigured}
+              disabled={!accountProvisioningConfigured}
               className="account-checkbox"
             />
-            Create Supabase Auth user
+            Create portal login
           </label>
         </div>
 
-        {!supabaseAdminConfigured ? (
+        {!accountProvisioningConfigured ? (
           <p className="text-sm text-[var(--warning)]">
-            Supabase admin key is not configured. Accounts created here are local-only for backend review.
+            Account provisioning is not configured. Accounts created here are local-only for backend review.
           </p>
         ) : null}
 
