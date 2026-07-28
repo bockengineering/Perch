@@ -46,7 +46,15 @@ export function workerPollIntervalSeconds() {
 }
 
 export function demoToolsEnabled() {
-  return process.env.DEMO_TOOLS_ENABLED === "true";
+  return process.env.NODE_ENV !== "production" && process.env.DEMO_TOOLS_ENABLED === "true";
+}
+
+export function publicSignupEnabled() {
+  if (process.env.NODE_ENV === "production") {
+    return process.env.PUBLIC_SIGNUP_ENABLED === "true";
+  }
+
+  return process.env.PUBLIC_SIGNUP_ENABLED !== "false";
 }
 
 export function requireServerEnv(name: string) {

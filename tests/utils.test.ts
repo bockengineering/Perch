@@ -26,6 +26,10 @@ import { isDemoCafeLogin } from "@/lib/auth/hosted-preview";
 import { isSupabaseAdminConfigured, isSupabaseAuthConfigured } from "@/lib/auth/supabase";
 import { defaultPricePlanCreateData, slugifyCafeName } from "@/lib/services/cafe-signup";
 import { parseShopUpdatePayload } from "@/lib/services/shop-settings";
+import { isBasicAuthAllowed } from "@/lib/auth/basic";
+import { demoToolsEnabled, publicSignupEnabled } from "@/lib/env";
+import { sanitizePortalRawQuery } from "@/lib/services/portal-session";
+import { assertPaidAccessGranted, stripeWebhookHttpStatus } from "@/lib/services/webhooks";
 
 describe("MAC utilities", () => {
   it("normalizes common MAC address formats", () => {
@@ -42,6 +46,68 @@ describe("MAC utilities", () => {
     process.env.APP_MAC_PEPPER = "test-pepper";
     assert.equal(hashMac("shop_a", "AA:BB:CC:DD:EE:FF"), hashMac("shop_a", "AA:BB:CC:DD:EE:FF"));
     assert.notEqual(hashMac("shop_a", "AA:BB:CC:DD:EE:FF"), hashMac("shop_b", "AA:BB:CC:DD:EE:FF"));
+  });
+});
+
+describe("production safety controls", () => {
+  it("disables Basic Auth fallback when requested", () => {
+    const original = process.env.DISABLE_BASIC_AUTH;
+    process.env.DISABLE_BASIC_AUTH = "true";
+    try {
+      const request = new Request("https://perch.example/admin", {
+        headers: { authorization: `Basic ${Buffer.from("admin:secret").toString("base64")}` },
+      });
+      assert.equal(isBasicAuthAllowed(request), false);
+    } finally {
+      if (original === undefined) delete process.env.DISABLE_BASIC_AUTH;
+      else process.env.DISABLE_BASIC_AUTH = original;
+    }
+  });
+
+  it("never enables demo tools in production and requires explicit public signup", () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+    const originalDemo = process.env.DEMO_TOOLS_ENABLED;
+    const originalSignup = process.env.PUBLIC_SIGNUP_ENABLED;
+    const mutableEnv = process.env as Record<string, string | undefined>;
+    mutableEnv.NODE_ENV = "production";
+    process.env.DEMO_TOOLS_ENABLED = "true";
+    delete process.env.PUBLIC_SIGNUP_ENABLED;
+    try {
+      assert.equal(demoToolsEnabled(), false);
+      assert.equal(publicSignupEnabled(), false);
+      process.env.PUBLIC_SIGNUP_ENABLED = "true";
+      assert.equal(publicSignupEnabled(), true);
+    } finally {
+      if (originalNodeEnv === undefined) delete mutableEnv.NODE_ENV;
+      else mutableEnv.NODE_ENV = originalNodeEnv;
+      if (originalDemo === undefined) delete process.env.DEMO_TOOLS_ENABLED;
+      else process.env.DEMO_TOOLS_ENABLED = originalDemo;
+      if (originalSignup === undefined) delete process.env.PUBLIC_SIGNUP_ENABLED;
+      else process.env.PUBLIC_SIGNUP_ENABLED = originalSignup;
+    }
+  });
+
+  it("does not retain MAC addresses or redirect URLs in portal query history", () => {
+    assert.deepEqual(
+      sanitizePortalRawQuery({
+        id: "AA:BB:CC:DD:EE:FF",
+        ap: "11:22:33:44:55:66",
+        ssid: "CafeGuest",
+        url: "https://example.com/private/path",
+        preview: "payment",
+      }),
+      { ssid: "CafeGuest", preview: "payment" },
+    );
+  });
+
+  it("retries Stripe events when paid access was not granted", () => {
+    assert.equal(stripeWebhookHttpStatus({ ok: true }), 200);
+    assert.equal(stripeWebhookHttpStatus({ ok: false }), 500);
+    assert.doesNotThrow(() => assertPaidAccessGranted({ ok: true }));
+    assert.throws(
+      () => assertPaidAccessGranted({ ok: false, error: "UniFi rejected the grant" }),
+      /UniFi rejected/,
+    );
   });
 });
 

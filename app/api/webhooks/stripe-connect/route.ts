@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getOptionalServerEnv } from "@/lib/env";
 import { getStripe } from "@/lib/stripe/client";
-import { processStripeConnectEvent } from "@/lib/services/webhooks";
+import { processStripeConnectEvent, stripeWebhookHttpStatus } from "@/lib/services/webhooks";
 
 export const dynamic = "force-dynamic";
 
@@ -27,5 +27,8 @@ export async function POST(request: Request) {
   }
 
   const result = await processStripeConnectEvent(event);
-  return NextResponse.json({ received: true, ok: result.ok });
+  return NextResponse.json(
+    { received: true, ok: result.ok },
+    { status: stripeWebhookHttpStatus(result) },
+  );
 }

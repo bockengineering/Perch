@@ -5,6 +5,10 @@ import { isSupabaseAdminConfigured, isSupabaseAuthConfigured } from "@/lib/auth/
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ ok: true });
+  }
+
   return NextResponse.json({
     ok: true,
     databaseConfigured: databaseUrlConfigured(),

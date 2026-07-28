@@ -109,8 +109,8 @@ model Shop {
   freeMinutesPerDay        Int           @default(60)
   freeResetType            FreeResetType @default(DAILY)
   freeResetHour            Int           @default(0)
-  checkoutGraceMinutes     Int           @default(10)
-  maxCheckoutGracePerDay   Int           @default(20)
+  checkoutGraceMinutes     Int           @default(5)
+  maxCheckoutGracePerDay   Int           @default(1)
   platformFeeBps           Int           @default(2000)
   stripeConnectedAccountId String?
   stripeChargesEnabled     Boolean       @default(false)

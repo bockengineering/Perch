@@ -15,6 +15,16 @@ export function isDuplicateWebhook(processedEventIds: Set<string>, eventId: stri
   return false;
 }
 
+export function assertPaidAccessGranted(result: { ok: boolean; error?: string; reason?: string }) {
+  if (!result.ok) {
+    throw new Error(result.error ?? result.reason ?? "Paid access authorization failed");
+  }
+}
+
+export function stripeWebhookHttpStatus(result: { ok: boolean }) {
+  return result.ok ? 200 : 500;
+}
+
 export async function storeWebhookEvent(event: Stripe.Event) {
   const prisma = getPrisma();
 
@@ -90,7 +100,7 @@ export async function processStripeConnectEvent(event: Stripe.Event) {
                 typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id,
             },
           });
-          await grantPaidAccess(order.id);
+          assertPaidAccessGranted(await grantPaidAccess(order.id));
         }
         break;
       }

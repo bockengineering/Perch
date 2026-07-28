@@ -33,9 +33,9 @@ export function basicAuthResponse() {
   });
 }
 
-export function isBasicAuthAllowed(request: NextRequest) {
+export function isBasicAuthAllowed(request: Request | NextRequest) {
   if (process.env.DISABLE_BASIC_AUTH === "true") {
-    return true;
+    return false;
   }
 
   const header = request.headers.get("authorization");

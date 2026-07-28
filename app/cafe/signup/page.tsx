@@ -7,6 +7,7 @@ import {
   CAFE_SESSION_COOKIE_NAME,
   verifyCafeSessionCookie,
 } from "@/lib/auth/cafe-session";
+import { publicSignupEnabled } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +51,21 @@ export default async function CafeSignupPage() {
             </div>
           </div>
         </div>
-        <CafeSignupForm />
+        {publicSignupEnabled() ? (
+          <CafeSignupForm />
+        ) : (
+          <section className="cafe-signup-form" aria-labelledby="signup-invite-heading">
+            <p className="eyebrow">Early access</p>
+            <h2 id="signup-invite-heading">Cafe accounts are invitation-only.</h2>
+            <p className="signup-lede">
+              Perch is onboarding its first cafes directly so each UniFi and Stripe setup can be verified before
+              guests use it. Contact the Perch team for access, or sign in if your account is ready.
+            </p>
+            <a className="btn btn--primary" href="/cafe/login">
+              Sign in
+            </a>
+          </section>
+        )}
       </section>
     </main>
   );

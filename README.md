@@ -23,6 +23,7 @@ Copy `.env.example` to `.env` and replace every placeholder:
 - `APP_URL`: public app URL, for example `http://localhost:3000`.
 - `NEXTAUTH_SECRET`: auth/session secret placeholder for future auth expansion.
 - `ADMIN_BASIC_USERNAME` / `ADMIN_BASIC_PASSWORD`: basic admin/staff gate.
+- `DISABLE_BASIC_AUTH`: set `true` in production after session-based admin accounts are ready.
 - `PLATFORM_ADMIN_EMAIL` / `PLATFORM_ADMIN_PASSWORD`: optional production bootstrap login for the platform admin UI. In local/demo mode Perch falls back to `ADMIN_BASIC_USERNAME` / `ADMIN_BASIC_PASSWORD`.
 - `PLATFORM_SESSION_SECRET`: secret used to sign platform admin session cookies.
 - `CAFE_LOGIN_EMAIL` / `CAFE_LOGIN_PASSWORD`: cafe owner login for the cafe console.
@@ -36,6 +37,7 @@ Copy `.env.example` to `.env` and replace every placeholder:
 - `STRIPE_MOCK_CHECKOUT`: set `true` for local mock checkout URLs.
 - `DEMO_TOOLS_ENABLED`: enables local/staging-only demo reset and mock checkout completion routes.
 - `HOSTED_PREVIEW_DEMO_ENABLED`: optional fallback for static hosted previews. Leave `false` for editable cafe consoles.
+- `PUBLIC_SIGNUP_ENABLED`: defaults to off in production. Leave off for an invitation-only launch.
 - `APP_MAC_PEPPER`: HMAC secret for per-shop MAC identity hashes.
 - `FIELD_ENCRYPTION_KEY`: 32-byte base64 or hex key for encrypted MACs and UniFi API keys.
 - `VOUCHER_CODE_SECRET`: HMAC secret for staff voucher codes.
@@ -49,9 +51,12 @@ Do not commit `.env`, Stripe keys, database URLs, UniFi API keys, encryption key
 Create a Postgres database, set `DATABASE_URL`, then run:
 
 ```bash
-npm run db:push
+npm run db:migrate:deploy
 npm run seed
 ```
+
+`db:push` remains available for disposable local demo databases. Production schema changes use the committed
+Prisma migrations.
 
 The seed creates `Demo Cafe`, a mock UniFi integration, and two price plans:
 
@@ -299,15 +304,14 @@ The authorize action is `AUTHORIZE_GUEST_ACCESS` with UniFi enforcing the time l
 
 Platform admin routes use signed `perch_platform_session` cookies. Cafe/staff routes use signed `perch_cafe_session` cookies. HTTP Basic Auth remains as a technical fallback for protected admin and staff APIs.
 
-## Deployment Notes
+## Branches And Deployment
 
-1. Provision Postgres and set `DATABASE_URL`, or connect Supabase through Vercel so `POSTGRES_PRISMA_URL` is available.
-2. Set all secrets in the deployment environment.
-3. Run `npm run db:push` or convert the schema to migrations before production launch.
-4. Seed only demo or initial admin data where appropriate.
-5. Configure UniFi captive portal URLs per shop.
-6. Configure Stripe Connect onboarding and the Connect webhook endpoint.
-7. Run the worker as a separate process or scheduled/background service.
+- `dev` is the integration branch. Pushes should create preview deployments.
+- `main` is the production branch. Only fast-forward it after CI and manual portal/payment smoke tests pass on `dev`.
+- Vercel should track `main` as the Production Branch.
+
+The complete launch checklist, environment matrix, database adoption steps, and rollback process are in
+[`docs/production.md`](docs/production.md).
 
 ## Known Limitations
 

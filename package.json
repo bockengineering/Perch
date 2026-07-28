@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "description": "Perch is a UniFi-only captive portal SaaS for coffee shops.",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev --webpack",
     "build": "prisma generate && next build --webpack",
@@ -11,6 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "db:generate": "prisma generate",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:status": "prisma migrate status",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
     "seed": "prisma db seed",

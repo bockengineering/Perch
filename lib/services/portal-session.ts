@@ -11,6 +11,14 @@ export type UniFiPortalParams = {
   raw: Record<string, string>;
 };
 
+const sensitivePortalQueryKeys = new Set(["id", "ap", "url"]);
+
+export function sanitizePortalRawQuery(raw: Record<string, string>) {
+  return Object.fromEntries(
+    Object.entries(raw).filter(([key]) => !sensitivePortalQueryKeys.has(key.toLowerCase())),
+  );
+}
+
 function firstValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -53,10 +61,9 @@ export async function createPortalSession(input: {
     data: {
       shopId: input.shop.id,
       deviceId: input.deviceId ?? undefined,
-      rawQueryJson: input.params.raw as Prisma.InputJsonValue,
+      rawQueryJson: sanitizePortalRawQuery(input.params.raw) as Prisma.InputJsonValue,
       ssid: input.params.ssid,
       apMacHash,
-      originalUrl: input.params.originalUrl,
       ipHash: input.ip ? hashOpaqueValue(input.ip) : undefined,
       userAgentHash: input.userAgent ? hashOpaqueValue(input.userAgent) : undefined,
       status: input.status ?? "OPEN",

@@ -7,6 +7,7 @@ import {
 } from "@/lib/auth/cafe-session";
 import { createSupabaseCafeUser, isSupabaseAdminConfigured } from "@/lib/auth/supabase";
 import { getPrisma } from "@/lib/db";
+import { publicSignupEnabled } from "@/lib/env";
 import { logAudit } from "@/lib/services/audit";
 import { createCafeSignupAccount } from "@/lib/services/cafe-signup";
 import { checkRateLimit } from "@/lib/utils/rate-limit";
@@ -28,6 +29,20 @@ function clientIp(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!publicSignupEnabled()) {
+    return NextResponse.json(
+      { error: "Public signup is not open yet. Contact Perch for an invitation." },
+      { status: 503 },
+    );
+  }
+
+  if (process.env.NODE_ENV === "production" && !isSupabaseAdminConfigured()) {
+    return NextResponse.json(
+      { error: "Account provisioning is temporarily unavailable. Contact Perch support." },
+      { status: 503 },
+    );
+  }
+
   const rateLimit = checkRateLimit(`cafe-signup:${clientIp(request)}`, 5, 60 * 60 * 1000);
   if (!rateLimit.allowed) {
     return NextResponse.json({ error: "Too many signup attempts. Try again later." }, { status: 429 });
