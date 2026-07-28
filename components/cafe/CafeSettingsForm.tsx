@@ -223,7 +223,7 @@ export function CafeSettingsForm({ shop, allowPlatformFee = false }: CafeSetting
             type="number"
             min="0"
             max="10000"
-            defaultValue={shop.platformFeeBps ?? 5000}
+            defaultValue={shop.platformFeeBps ?? 2000}
             className="rounded-md border border-[var(--border)] px-3 py-2 font-normal"
             required
           />

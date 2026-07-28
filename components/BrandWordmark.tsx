@@ -22,6 +22,7 @@ export function BrandWordmark({
       alt="Perch"
       width={width}
       height={height}
+      style={{ width, height }}
       priority={priority}
     />
   );

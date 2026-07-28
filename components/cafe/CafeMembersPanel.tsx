@@ -23,29 +23,41 @@ type CafeMembersPanelProps = {
 
 export function CafeMembersPanel({ shopId, members, accountProvisioningConfigured }: CafeMembersPanelProps) {
   const [message, setMessage] = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
 
   async function submit(formData: FormData) {
-    setMessage(null);
-    const createPortalLogin = formData.get("createPortalLogin") === "on";
-    const response = await fetch(`/api/admin/shops/${shopId}/members`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: formData.get("email"),
-        name: formData.get("name") || null,
-        role: formData.get("role"),
-        password: formData.get("password") || undefined,
-        createPortalLogin,
-      }),
-    });
-
-    const payload = (await response.json().catch(() => ({}))) as { error?: string };
-    if (!response.ok) {
-      setMessage(payload.error ?? "Account could not be created.");
+    if (isAdding) {
       return;
     }
 
-    window.location.reload();
+    setMessage(null);
+    setIsAdding(true);
+    const createPortalLogin = formData.get("createPortalLogin") === "on";
+    try {
+      const response = await fetch(`/api/admin/shops/${shopId}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.get("email"),
+          name: formData.get("name") || null,
+          role: formData.get("role"),
+          password: formData.get("password") || undefined,
+          createPortalLogin,
+        }),
+      });
+
+      const payload = (await response.json().catch(() => ({}))) as { error?: string };
+      if (!response.ok) {
+        setMessage(payload.error ?? "Account could not be created.");
+        setIsAdding(false);
+        return;
+      }
+
+      window.location.reload();
+    } catch {
+      setMessage("Account could not be created. Check your connection and try again.");
+      setIsAdding(false);
+    }
   }
 
   return (
@@ -75,8 +87,8 @@ export function CafeMembersPanel({ shopId, members, accountProvisioningConfigure
                   <p className="font-semibold">{member.user.name ?? member.user.email}</p>
                   <p className="text-[var(--muted)]">{member.user.email}</p>
                 </td>
-                <td className="p-3">{member.role}</td>
-                <td className="p-3">{member.user.loginReady ? "READY" : "LOCAL ONLY"}</td>
+                <td className="p-3">{member.role === "SHOP_OWNER" ? "Owner" : "Staff"}</td>
+                <td className="p-3">{member.user.loginReady ? "Ready" : "Local only"}</td>
                 <td className="p-3 text-[var(--muted)]">
                   {member.user.lastLoginAt ? new Date(member.user.lastLoginAt).toLocaleString() : "Never"}
                 </td>
@@ -151,11 +163,15 @@ export function CafeMembersPanel({ shopId, members, accountProvisioningConfigure
         ) : null}
 
         <div className="flex flex-wrap items-center gap-3">
-          <button className="inline-flex items-center justify-center gap-2 rounded-md bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-white">
+          <button
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-white"
+            disabled={isAdding}
+            aria-busy={isAdding}
+          >
             <Plus size={16} />
-            Add account
+            {isAdding ? "Adding account..." : "Add account"}
           </button>
-          {message ? <p className="text-sm text-[var(--danger)]">{message}</p> : null}
+          {message ? <p className="text-sm text-[var(--danger)]" role="alert">{message}</p> : null}
         </div>
       </form>
     </div>

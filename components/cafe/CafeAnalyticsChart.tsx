@@ -93,10 +93,11 @@ export function CafeAnalyticsChart({ analytics }: { analytics: ShopAnalytics }) 
   return (
     <div className="analytics-card">
       <div className="analytics-controls">
-        <div className="segmented-control" aria-label="Chart period">
+        <div className="segmented-control" role="group" aria-label="Chart period">
           <button
             className={period === "days" ? "is-active" : ""}
             type="button"
+            aria-pressed={period === "days"}
             onClick={() => setPeriod("days")}
           >
             Days
@@ -104,6 +105,7 @@ export function CafeAnalyticsChart({ analytics }: { analytics: ShopAnalytics }) 
           <button
             className={period === "months" ? "is-active" : ""}
             type="button"
+            aria-pressed={period === "months"}
             onClick={() => setPeriod("months")}
           >
             Months

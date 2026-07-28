@@ -33,6 +33,9 @@ export function PortalBrand({ shop }: { shop?: PortalBrandShop | null }) {
         aria-label={label}
         style={logoBackgroundStyle(logoUrl)}
       />
+      {!shop?.brandLogoUrl && shop?.name ? (
+        <span className="portal-brand-cafe-name">{shop.name}</span>
+      ) : null}
     </div>
   );
 }

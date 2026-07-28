@@ -54,7 +54,7 @@ export async function seedDemoData(prisma: PrismaClient) {
       freeResetHour: 0,
       checkoutGraceMinutes: 10,
       maxCheckoutGracePerDay: 20,
-      platformFeeBps: 5000,
+      platformFeeBps: 2000,
       stripeConnectedAccountId: "acct_mock_demo",
       stripeChargesEnabled: true,
       stripePayoutsEnabled: true,
@@ -70,7 +70,7 @@ export async function seedDemoData(prisma: PrismaClient) {
       freeResetHour: 0,
       checkoutGraceMinutes: 10,
       maxCheckoutGracePerDay: 20,
-      platformFeeBps: 5000,
+      platformFeeBps: 2000,
       stripeConnectedAccountId: "acct_mock_demo",
       stripeChargesEnabled: true,
       stripePayoutsEnabled: true,
@@ -120,28 +120,40 @@ export async function seedDemoData(prisma: PrismaClient) {
     },
   });
 
-  await prisma.pricePlan.deleteMany({ where: { shopId: shop.id } });
-  await prisma.pricePlan.createMany({
-    data: [
-      {
-        shopId: shop.id,
-        label: "2 more hours",
-        durationMinutes: 120,
-        amountCents: 500,
-        currency: "usd",
-        active: true,
-        sortOrder: 1,
-      },
-      {
-        shopId: shop.id,
-        label: "All day",
-        durationMinutes: 720,
-        amountCents: 800,
-        currency: "usd",
-        active: true,
-        sortOrder: 2,
-      },
-    ],
+  const demoPlans = [
+    {
+      label: "2 more hours",
+      durationMinutes: 120,
+      amountCents: 500,
+      currency: "usd",
+      active: true,
+      sortOrder: 1,
+    },
+    {
+      label: "All day",
+      durationMinutes: 720,
+      amountCents: 800,
+      currency: "usd",
+      active: true,
+      sortOrder: 2,
+    },
+  ];
+  const demoPlanIds: string[] = [];
+
+  for (const plan of demoPlans) {
+    const existingPlan = await prisma.pricePlan.findFirst({
+      where: { shopId: shop.id, label: plan.label },
+      orderBy: { createdAt: "asc" },
+    });
+    const savedPlan = existingPlan
+      ? await prisma.pricePlan.update({ where: { id: existingPlan.id }, data: plan })
+      : await prisma.pricePlan.create({ data: { ...plan, shopId: shop.id } });
+    demoPlanIds.push(savedPlan.id);
+  }
+
+  await prisma.pricePlan.updateMany({
+    where: { shopId: shop.id, id: { notIn: demoPlanIds } },
+    data: { active: false },
   });
 
   return shop;

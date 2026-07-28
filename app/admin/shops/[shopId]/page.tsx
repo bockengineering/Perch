@@ -287,12 +287,13 @@ export default async function ShopDetailPage({ params }: PageProps) {
 
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="surface grid gap-4 p-4">
-          <SectionTitle icon={Wifi} title="UniFi integration" detail="Test and save UniFi controller details without exposing the API key to browsers." />
+          <SectionTitle icon={Wifi} title="UniFi integration" detail="Test UniFi, match the shop to the right location, and save the connection." />
           <UnifiSettingsForm
             shopId={shop.id}
             defaults={{
               apiBaseUrl: shop.unifiIntegration?.apiBaseUrl,
               siteId: shop.unifiIntegration?.siteId,
+              siteName: shop.unifiIntegration?.siteName,
               allowedSsids: shop.unifiIntegration?.allowedSsids,
             }}
           />

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BrandWordmark } from "@/components/BrandWordmark";
+import { MarketingMobileNav } from "@/components/MarketingMobileNav";
 
 /**
  * Perch — marketing homepage.
@@ -37,6 +38,7 @@ export default function HomePage() {
   return (
     <div className="perch-home">
       <style>{CSS}</style>
+      <a className="skip-link" href="#top">Skip to main content</a>
 
       {/* ============================ NAV ============================ */}
       <header className="nav">
@@ -50,6 +52,7 @@ export default function HomePage() {
             <a href="#privacy">Privacy</a>
             <a href="#faq">FAQ</a>
           </nav>
+          <MarketingMobileNav />
           <div className="nav__right">
             <Link href="/cafe/login" className="nav__login">Café login</Link>
             <Link href="/cafe/signup" className="btn btn--primary">Sign up</Link>
@@ -358,12 +361,6 @@ export default function HomePage() {
               <Link href="/cafe/login">Café login</Link>
               <a href="mailto:hello@perch.coffee">Contact us</a>
             </div>
-            <div className="footer__col">
-              <h4>Company</h4>
-              <a href="#">About</a>
-              <a href="#">Terms</a>
-              <a href="#">Privacy policy</a>
-            </div>
           </div>
           <div className="footer__bottom">
             <span>© {new Date().getFullYear()} Perch. All rights reserved.</span>
@@ -425,6 +422,9 @@ const CSS = `
 .perch-home p { margin: 0; text-wrap: pretty; }
 .perch-home a { color: inherit; text-decoration: none; }
 .perch-home ::selection { background: var(--accent-soft); color: var(--accent-deep); }
+.perch-home [id] { scroll-margin-top: 86px; }
+.perch-home .skip-link { position: fixed; top: 10px; left: 10px; z-index: 100; transform: translateY(-160%); border-radius: var(--r-sm); background: var(--ink); color: var(--paper); padding: 10px 14px; font-size: 14px; font-weight: 600; transition: transform .15s var(--ease); }
+.perch-home .skip-link:focus { transform: translateY(0); }
 
 .perch-home .wrap { width: 100%; max-width: var(--maxw); margin-inline: auto; padding-inline: var(--gutter); }
 .perch-home .section { padding-block: clamp(64px, 9vw, 128px); }
@@ -446,7 +446,7 @@ const CSS = `
 
 /* nav */
 .perch-home .nav { position: sticky; top: 0; z-index: 50; background: oklch(0.973 0.009 83 / 0.82); backdrop-filter: saturate(1.3) blur(14px); border-bottom: 1px solid var(--line-soft); }
-.perch-home .nav__inner { display: flex; align-items: center; justify-content: space-between; height: 70px; }
+.perch-home .nav__inner { position: relative; display: flex; align-items: center; justify-content: space-between; height: 70px; }
 .perch-home .brand { display: inline-flex; align-items: center; }
 .perch-home .brand__wordmark { display: block; width: 118px; height: auto; }
 .perch-home .nav__links { display: flex; align-items: center; gap: 30px; }
@@ -455,8 +455,15 @@ const CSS = `
 .perch-home .nav__right { display: flex; align-items: center; gap: 18px; }
 .perch-home .nav__login { font-size: 15px; color: var(--ink-2); transition: color .2s; }
 .perch-home .nav__login:hover { color: var(--ink); }
-@media (max-width: 880px) { .perch-home .nav__links { display: none; } }
-@media (max-width: 560px) { .perch-home .nav__login { display: none; } }
+.perch-home .nav__mobile { display: none; position: relative; margin-left: auto; margin-right: 16px; }
+.perch-home .nav__menu-button { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: var(--ink-2); padding: 9px 2px; font: inherit; font-size: 14px; font-weight: 560; }
+.perch-home .nav__menu-button svg { width: 17px; height: 17px; }
+.perch-home .nav__mobile-panel { position: absolute; top: calc(100% + 12px); right: 0; display: grid; width: min(250px, calc(100vw - 40px)); overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-md); }
+.perch-home .nav__mobile-panel a { padding: 12px 16px; border-bottom: 1px solid var(--line-soft); color: var(--ink-2); font-size: 15px; }
+.perch-home .nav__mobile-panel a:last-child { border-bottom: 0; }
+.perch-home .nav__mobile-panel a:hover { background: var(--paper-2); color: var(--ink); }
+@media (max-width: 880px) { .perch-home .nav__links { display: none; } .perch-home .nav__mobile { display: block; } }
+@media (max-width: 560px) { .perch-home .nav__login { display: none; } .perch-home .brand__wordmark { width: 104px; } .perch-home .nav__mobile { margin-right: 10px; } }
 
 /* hero */
 .perch-home .hero { padding-top: clamp(48px, 7vw, 92px); padding-bottom: clamp(56px, 8vw, 110px); position: relative; overflow: hidden; }
@@ -622,7 +629,7 @@ const CSS = `
 
 /* footer */
 .perch-home .footer { background: var(--paper); border-top: 1px solid var(--line); padding-block: clamp(48px, 6vw, 72px) 36px; }
-.perch-home .footer__top { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; }
+.perch-home .footer__top { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 32px; }
 .perch-home .footer__brand { display: inline-flex; align-items: center; }
 .perch-home .footer__wordmark { display: block; width: 122px; height: auto; }
 .perch-home .footer__tag { margin-top: 16px; color: var(--muted); font-size: 15px; max-width: 30ch; }
@@ -632,4 +639,7 @@ const CSS = `
 .perch-home .footer__bottom { margin-top: clamp(40px, 5vw, 60px); padding-top: 24px; border-top: 1px solid var(--line-soft); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); }
 @media (max-width: 760px) { .perch-home .footer__top { grid-template-columns: 1fr 1fr; gap: 32px 24px; } }
 @media (max-width: 440px) { .perch-home .footer__top { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) {
+  .perch-home *, .perch-home *::before, .perch-home *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
 `;

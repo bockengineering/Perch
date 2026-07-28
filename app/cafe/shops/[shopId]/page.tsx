@@ -110,7 +110,7 @@ function buildHostedPreviewAnalytics(): ShopAnalytics {
   const makePoint = (label: string, index: number) => {
     const paidPasses = 3 + ((index * 5) % 9);
     const grossRevenueCents = paidPasses * (index % 3 === 0 ? 800 : 500);
-    const platformFeeCents = Math.round(grossRevenueCents * 0.5);
+    const platformFeeCents = Math.round(grossRevenueCents * 0.2);
 
     return {
       key: label,
@@ -150,7 +150,7 @@ function HostedPreviewCafeConsole() {
 
   return (
     <main className="mx-auto grid max-w-6xl gap-6 px-6 py-8">
-      <header className="dashboard-hero surface p-5">
+      <header id="overview" className="dashboard-hero surface p-5">
         <div className="dashboard-hero-main">
           <BrandWordmark className="app-wordmark" width={104} height={46} priority />
           <p className="dashboard-kicker mt-3">Cafe back office</p>
@@ -198,13 +198,13 @@ function HostedPreviewCafeConsole() {
           </div>
           <p>Guest access, paid extensions, and support signals at a glance.</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="dashboard-metric-grid grid gap-4 md:grid-cols-4">
           <MetricCard label="Paid passes today" value={9} tone="success" />
           <MetricCard label="Gross today" value="$48.00" tone="success" />
-          <MetricCard label="Cafe share today" value="$24.00" />
+          <MetricCard label="Cafe share today" value="$38.40" />
           <MetricCard label="Voucher uses today" value={14} />
           <MetricCard label="30-day gross" value="$1,280.00" />
-          <MetricCard label="30-day cafe share" value="$640.00" />
+          <MetricCard label="30-day cafe share" value="$1,024.00" />
           <MetricCard label="UniFi status" value="CONNECTED" tone="success" />
           <MetricCard label="Failed auths today" value={0} />
         </div>
@@ -238,9 +238,9 @@ function HostedPreviewCafeConsole() {
               </thead>
               <tbody>
                 {[
-                  ["Today, 9:18 AM", "2 more hours", "AUTHORIZED", "$5.00", "$2.50"],
-                  ["Today, 10:42 AM", "All day", "AUTHORIZED", "$8.00", "$4.00"],
-                  ["Today, 12:05 PM", "2 more hours", "PAID", "$5.00", "$2.50"],
+                  ["Today, 9:18 AM", "2 more hours", "AUTHORIZED", "$5.00", "$4.00"],
+                  ["Today, 10:42 AM", "All day", "AUTHORIZED", "$8.00", "$6.40"],
+                  ["Today, 12:05 PM", "2 more hours", "PAID", "$5.00", "$4.00"],
                 ].map((row, rowIndex) => (
                   <tr key={row.join("-")} className="border-t border-[var(--border)]">
                     {row.map((cell, index) => (
@@ -558,7 +558,7 @@ export default async function CafeShopPage({ params }: PageProps) {
 
   return (
     <main className="mx-auto grid max-w-6xl gap-6 px-6 py-8">
-      <header className="dashboard-hero surface p-5">
+      <header id="overview" className="dashboard-hero surface p-5">
         <div className="dashboard-hero-main">
           <BrandWordmark className="app-wordmark" width={104} height={46} priority />
           <p className="dashboard-kicker mt-3">Cafe console</p>
@@ -582,10 +582,12 @@ export default async function CafeShopPage({ params }: PageProps) {
             Staff codes
           </Link>
           <Link
-            href={`/p/${shop.slug}`}
+            href={`/p/${shop.slug}?preview=payment`}
+            target="_blank"
+            rel="noreferrer"
             className="rounded-md bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-white"
           >
-            Portal
+            Preview portal
           </Link>
           <form action="/api/cafe/logout" method="post">
             <button className="rounded-md border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold" type="submit">
@@ -613,11 +615,26 @@ export default async function CafeShopPage({ params }: PageProps) {
         </div>
       </header>
 
+      <nav className="dashboard-section-nav" aria-label="Console sections">
+        <a href="#overview">Overview</a>
+        <a href="#activity">Activity</a>
+        <a href="#guest-access">Guest access</a>
+        {isOwner ? (
+          <>
+            <a href="#unifi-integration">Setup</a>
+            <a href="#cafe-settings">Settings</a>
+            <a href="#paid-plans">Plans</a>
+            <a href="#team">Team</a>
+            <a href="#support">Support</a>
+          </>
+        ) : null}
+      </nav>
+
       {isOwner ? (
         <QuickStartWalkthrough shopId={shop.id} steps={quickStartSteps} />
       ) : null}
 
-      <section className="grid gap-3">
+      <section id="activity" className="grid gap-3">
         <div className="dashboard-section-heading">
           <div>
             <p className="dashboard-kicker">Today</p>
@@ -625,7 +642,7 @@ export default async function CafeShopPage({ params }: PageProps) {
           </div>
           <p>Guest traffic, access grants, payment activity, and support signals.</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="dashboard-metric-grid grid gap-4 md:grid-cols-4">
           <MetricCard label="Portal visits today" value={portalVisitsToday} detail="Captive portal opens" />
           <MetricCard label="Free grants today" value={freeGrantsToday} detail={`${thirtyDayFreeGrants} in 30 days`} />
           <MetricCard label="Active guest grants" value={activeGrants} detail="Currently authorized" tone="success" />
@@ -690,7 +707,7 @@ export default async function CafeShopPage({ params }: PageProps) {
         </section>
       )}
 
-      <section className="grid gap-4 lg:grid-cols-[1fr_380px]">
+      <section id="guest-access" className="grid gap-4 lg:grid-cols-[1fr_380px]">
         {isOwner ? (
           <div className="surface grid gap-4 p-4">
             <SectionTitle icon={ReceiptText} title="Transactions" detail="Recent paid Wi-Fi pass activity from Stripe Checkout." />
@@ -753,12 +770,13 @@ export default async function CafeShopPage({ params }: PageProps) {
         <>
           <section className="grid gap-4">
             <div id="unifi-integration" className="surface grid gap-4 p-4">
-              <SectionTitle icon={PlugZap} title="Wi-Fi setup" detail="Connect UniFi, choose the cafe site, and list the guest Wi-Fi names Perch should manage." />
+              <SectionTitle icon={PlugZap} title="Wi-Fi setup" detail="Connect UniFi, match this cafe to its UniFi location, and list the guest Wi-Fi names Perch should manage." />
               <UnifiSettingsForm
                 shopId={shop.id}
                 defaults={{
                   apiBaseUrl: shop.unifiIntegration?.apiBaseUrl,
                   siteId: shop.unifiIntegration?.siteId,
+                  siteName: shop.unifiIntegration?.siteName,
                   allowedSsids: shop.unifiIntegration?.allowedSsids,
                 }}
               />
@@ -811,27 +829,29 @@ export default async function CafeShopPage({ params }: PageProps) {
             </div>
           </section>
 
-          <section className="surface grid gap-4 p-4">
+          <section id="paid-plans" className="surface grid gap-4 p-4">
             <SectionTitle icon={CreditCard} title="Paid plans" detail="Plans shown on the paywall after the daily free hour ends." />
             {shop.pricePlans.length === 0 ? <p className="text-sm text-[var(--muted)]">No paid plans configured yet.</p> : null}
             <PricePlanForm shopId={shop.id} plans={shop.pricePlans} />
           </section>
 
-          <CafeMembersPanel
-            shopId={shop.id}
-            accountProvisioningConfigured={isSupabaseAdminConfigured()}
-            members={members.map((member) => ({
-              id: member.id,
-              role: member.role,
-              user: {
-                id: member.user.id,
-                email: member.user.email,
-                name: member.user.name,
-                loginReady: Boolean(member.user.supabaseUserId),
-                lastLoginAt: member.user.lastLoginAt?.toISOString() ?? null,
-              },
-            }))}
-          />
+          <div id="team">
+            <CafeMembersPanel
+              shopId={shop.id}
+              accountProvisioningConfigured={isSupabaseAdminConfigured()}
+              members={members.map((member) => ({
+                id: member.id,
+                role: member.role,
+                user: {
+                  id: member.user.id,
+                  email: member.user.email,
+                  name: member.user.name,
+                  loginReady: Boolean(member.user.supabaseUserId),
+                  lastLoginAt: member.user.lastLoginAt?.toISOString() ?? null,
+                },
+              }))}
+            />
+          </div>
 
           <section className="grid gap-4 lg:grid-cols-2">
             <div className="surface grid gap-4 p-4">
@@ -906,7 +926,7 @@ export default async function CafeShopPage({ params }: PageProps) {
             </div>
           </section>
 
-          <section className="surface grid gap-3 p-4">
+          <section id="support" className="surface grid gap-3 p-4">
             <SectionTitle icon={LifeBuoy} title="Support snapshot" detail="What staff should check first if a guest says Wi-Fi is not connecting." />
             <div className="grid gap-3 md:grid-cols-3">
               <div>

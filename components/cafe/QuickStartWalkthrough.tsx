@@ -83,6 +83,38 @@ export function QuickStartWalkthrough({ shopId, steps }: QuickStartWalkthroughPr
     writeDismissedSteps(shopId, next);
   }
 
+  const allStepsComplete = steps.length > 0 && steps.every((step) => step.complete);
+  if (allStepsComplete) {
+    return (
+      <details className="setup-walkthrough-complete">
+        <summary>
+          <span>
+            <span className="dashboard-kicker">Start here</span>
+            <strong>Setup complete</strong>
+          </span>
+          <span>Review {steps.length} steps</span>
+        </summary>
+        <div className="setup-walkthrough-complete-grid">
+          {steps.map((step) => (
+            <a
+              key={step.id}
+              href={step.href}
+              target={step.external ? "_blank" : undefined}
+              rel={step.external ? "noreferrer" : undefined}
+            >
+              <span className="setup-step-number">{step.step}</span>
+              <span>
+                <strong>{step.title}</strong>
+                <small>{step.detail}</small>
+              </span>
+              {step.external ? <ExternalLink size={16} /> : <ArrowRight size={16} />}
+            </a>
+          ))}
+        </div>
+      </details>
+    );
+  }
+
   if (visibleSteps.length === 0) {
     return null;
   }

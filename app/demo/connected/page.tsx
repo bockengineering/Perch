@@ -7,8 +7,8 @@ export default function DemoConnectedPage() {
         <p className="text-sm font-semibold text-[var(--accent)]">Demo Cafe</p>
         <h1 className="mt-3 text-3xl font-semibold">Connected</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          The mock UniFi provider accepted the guest authorization. Return to the demo console to try the
-          same device again and see the paywall.
+          The mock UniFi provider accepted the guest authorization. Return to the demo console; repeat
+          visits stay connected until you use Simulate free hour ended.
         </p>
         <Link
           href="/demo"
