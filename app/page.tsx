@@ -198,7 +198,7 @@ export default function HomePage() {
           <div className="wrap">
             <div className="pricing__head">
               <p className="kicker">Pricing</p>
-              <h2>You set the prices. You keep <em>most</em> of every pass.</h2>
+              <h2>You set the prices.</h2>
             </div>
             <div className="pricing__cards">
               <div className="pcard pcard--hero">
