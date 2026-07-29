@@ -411,6 +411,6 @@ describe("Stripe Connect settings", () => {
     const controller = stripeConnectedAccountController();
     assert.equal(controller.fees?.payer, "account");
     assert.equal(controller.losses?.payments, "stripe");
-    assert.equal(controller.stripe_dashboard?.type, "express");
+    assert.equal(controller.stripe_dashboard?.type, "full");
   });
 });

@@ -25,10 +25,12 @@ export function stripeConnectedAccountController(): NonNullable<Stripe.AccountCr
     // Cafes are the merchant for direct charges, so their connected account pays
     // Stripe processing fees. Perch still collects its revenue share through
     // payment_intent_data.application_fee_amount on each Checkout Session.
+    // Stripe requires a full Dashboard account for this fee and loss-liability
+    // combination; Express accounts require the platform to assume both.
     fees: { payer: "account" },
     losses: { payments: "stripe" },
     requirement_collection: "stripe",
-    stripe_dashboard: { type: "express" },
+    stripe_dashboard: { type: "full" },
   };
 }
 
