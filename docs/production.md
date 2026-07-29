@@ -15,7 +15,8 @@ configuration separate.
 - Supabase Postgres and Auth.
 - Stripe platform account with Connect enabled.
 - A UniFi Site Manager API key for each cafe.
-- A continuously running worker process for `npm run worker`. Vercel Functions do not run this polling loop.
+- A scheduler for `POST /api/cron/silent-free-access`. On Vercel Hobby, use Supabase Cron to invoke it every
+  minute with `Authorization: Bearer $CRON_SECRET`. A continuously running service can still use `npm run worker`.
 
 The portal fast path can grant access during a guest redirect, but the worker is still required for silent
 authorization when UniFi detects a guest before the portal page is opened.
@@ -38,6 +39,7 @@ STRIPE_CONNECT_CLIENT_ID
 APP_MAC_PEPPER
 FIELD_ENCRYPTION_KEY
 VOUCHER_CODE_SECRET
+CRON_SECRET
 ```
 
 Use production-safe switches:

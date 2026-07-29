@@ -27,6 +27,7 @@ import { isSupabaseAdminConfigured, isSupabaseAuthConfigured } from "@/lib/auth/
 import { defaultPricePlanCreateData, slugifyCafeName } from "@/lib/services/cafe-signup";
 import { parseShopUpdatePayload } from "@/lib/services/shop-settings";
 import { isBasicAuthAllowed } from "@/lib/auth/basic";
+import { isCronRequestAuthorized } from "@/lib/auth/cron";
 import { demoToolsEnabled, publicSignupEnabled } from "@/lib/env";
 import { sanitizePortalRawQuery } from "@/lib/services/portal-session";
 import { assertPaidAccessGranted, stripeWebhookHttpStatus } from "@/lib/services/webhooks";
@@ -108,6 +109,34 @@ describe("production safety controls", () => {
       () => assertPaidAccessGranted({ ok: false, error: "UniFi rejected the grant" }),
       /UniFi rejected/,
     );
+  });
+
+  it("requires the configured bearer secret for worker cron requests", () => {
+    const original = process.env.CRON_SECRET;
+    process.env.CRON_SECRET = "test-cron-secret";
+    try {
+      assert.equal(
+        isCronRequestAuthorized(
+          new Request("https://perch.example/api/cron/silent-free-access", {
+            method: "POST",
+            headers: { authorization: "Bearer test-cron-secret" },
+          }),
+        ),
+        true,
+      );
+      assert.equal(
+        isCronRequestAuthorized(
+          new Request("https://perch.example/api/cron/silent-free-access", {
+            method: "POST",
+            headers: { authorization: "Bearer wrong-secret" },
+          }),
+        ),
+        false,
+      );
+    } finally {
+      if (original === undefined) delete process.env.CRON_SECRET;
+      else process.env.CRON_SECRET = original;
+    }
   });
 });
 
