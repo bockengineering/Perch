@@ -26,6 +26,9 @@ Copy `.env.example` to `.env` and replace every placeholder:
 - `DISABLE_BASIC_AUTH`: set `true` in production after session-based admin accounts are ready.
 - `PLATFORM_ADMIN_EMAIL` / `PLATFORM_ADMIN_PASSWORD`: optional production bootstrap login for the platform admin UI. In local/demo mode Perch falls back to `ADMIN_BASIC_USERNAME` / `ADMIN_BASIC_PASSWORD`.
 - `PLATFORM_SESSION_SECRET`: secret used to sign platform admin session cookies.
+- `RESEND_API_KEY`: server-only Resend credential used to email new cafe invite requests.
+- `INVITE_REQUEST_TO_EMAIL`: optional notification recipient. Defaults to `PLATFORM_ADMIN_EMAIL`.
+- `INVITE_REQUEST_FROM_EMAIL`: optional verified sender. Defaults to Resend's onboarding sender for initial testing.
 - `CAFE_LOGIN_EMAIL` / `CAFE_LOGIN_PASSWORD`: cafe owner login for the cafe console.
 - `CAFE_SESSION_SECRET`: secret used to sign cafe console session cookies.
 - `SUPABASE_URL`: Supabase project URL for cafe-owner Auth.

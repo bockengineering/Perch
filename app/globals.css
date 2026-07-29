@@ -1956,6 +1956,45 @@ pre {
   gap: 0.9rem;
 }
 
+.invite-request-actions,
+.invite-request-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.invite-request-actions {
+  justify-items: start;
+}
+
+.invite-request-form .primary-action {
+  justify-self: start;
+}
+
+.invite-request-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 1px solid var(--success);
+  background: #f4faf4;
+  color: #174b22;
+  padding: 1rem;
+}
+
+.invite-request-success p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+}
+
+.invite-request-honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .signup-defaults {
   display: grid;
   gap: 0.75rem;

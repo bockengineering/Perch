@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { BrandWordmark } from "@/components/BrandWordmark";
 import { CafeSignupForm } from "@/components/cafe/CafeSignupForm";
+import { InviteRequestForm } from "@/components/cafe/InviteRequestForm";
 import {
   CAFE_SESSION_COOKIE_NAME,
   verifyCafeSessionCookie,
@@ -54,17 +55,7 @@ export default async function CafeSignupPage() {
         {publicSignupEnabled() ? (
           <CafeSignupForm />
         ) : (
-          <section className="cafe-signup-form" aria-labelledby="signup-invite-heading">
-            <p className="eyebrow">Early access</p>
-            <h2 id="signup-invite-heading">Cafe accounts are invitation-only.</h2>
-            <p className="signup-lede">
-              Perch is onboarding its first cafes directly so each UniFi and Stripe setup can be verified before
-              guests use it. Contact the Perch team for access, or sign in if your account is ready.
-            </p>
-            <a className="btn btn--primary" href="/cafe/login">
-              Sign in
-            </a>
-          </section>
+          <InviteRequestForm />
         )}
       </section>
     </main>
